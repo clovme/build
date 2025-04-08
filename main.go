@@ -1,7 +1,7 @@
 package main
 
 import (
-	"embed"
+	_ "embed"
 	"flag"
 	"fmt"
 	"github.com/go-ini/ini"
@@ -11,8 +11,8 @@ import (
 	"strings"
 )
 
-//go:embed public/tools
-var el embed.FS
+//go:embed public/upx.exe
+var upx []byte
 
 //go:embed public/env
 var env []byte
@@ -20,22 +20,26 @@ var env []byte
 //go:embed public/pip.ini
 var pip []byte
 
-var conf = &Config{}
+var conf = &Config{
+	Other: OtherConfig{
+		Version: []int{0, 0, 0},
+	},
+}
 var ac = &ArgsCommand{}
 
 var buildIni = "build.cfg"
 var errIni error = nil
 
 func init() {
-	dir, _ := el.ReadDir("public/tools")
-	for _, f := range dir {
-		file, _ := el.ReadFile("public/tools/" + f.Name())
-		_ = os.WriteFile(filepath.Join(os.TempDir(), f.Name()), file, os.ModePerm)
-	}
+	flagUsage()
+	conf.Other.UPX = filepath.Join(os.TempDir(), "upx.exe")
+	_ = os.WriteFile(conf.Other.UPX, upx, os.ModePerm)
 
-	file, errIni := ini.Load(buildIni)
-	if errIni == nil {
+	file, err := ini.Load(buildIni)
+	if err == nil {
 		_ = file.MapTo(conf)
+	} else {
+		errIni = err
 	}
 
 	ct := reflect.TypeOf(&conf.Env).Elem()
@@ -55,6 +59,9 @@ func init() {
 		Help:     flag.Bool("help", false, "帮助"),
 		GUI:      flag.Bool("gui", conf.Build.IsGUI, "是否是GUI编译"),
 		UPX:      flag.Bool("upx", conf.Build.IsUPX, "是否开启UPX压缩"),
+		Arch:     flag.Bool("arch", conf.Build.IsArch, "文件名中是否添加架构名称"),
+		Version:  flag.Bool("version", conf.Build.IsVersion, "文件名中是否添加版本号"),
+		Platform: flag.Bool("platform", conf.Build.IsPlatform, "文件名中是否添加平台名称"),
 		Filename: flag.String("filename", conf.Build.Filename, "可执行文件名称"),
 		GOROOT:   flag.String("GOROOT", conf.Env.GOROOT, "GOROOT路径"),
 		GOOS:     flag.String("GOOS", conf.Env.GOOS, "编译目标系统"),
@@ -95,6 +102,9 @@ func main() {
 		}
 	}
 
+	ext := filepath.Ext(conf.Build.Filename)
+	conf.Build.Filename = conf.Build.Filename[:len(conf.Build.Filename)-len(ext)]
+
 	// 设置环境变量
 	envt := reflect.TypeOf(&conf.Env).Elem()
 	envv := reflect.ValueOf(&conf.Env).Elem()
@@ -106,12 +116,21 @@ func main() {
 		}
 	}
 
-	// 执行命令
-	if errIni != nil && len(os.Args) == 1 {
-		flag.Usage()
-		return
+	// 如果没有文件名，使用当前go.mod的模块名，其次使用目录名
+	if conf.Build.Filename == "" {
+		file, err := os.ReadFile("go.mod")
+		if err != nil {
+			dir, _ := os.Getwd()
+			conf.Build.Filename = filepath.Base(dir)
+		} else {
+			module := strings.Split(strings.Split(string(file), "\n")[0][7:], "/")
+			conf.Build.Filename = strings.TrimSpace(module[len(module)-1])
+		}
 	}
 
+	IncrementVersion()
+
+	// 执行命令
 	ExecCmd()
 
 	f := ini.Empty()
