@@ -28,7 +28,6 @@ var conf = &Config{
 var ac = &ArgsCommand{}
 
 var buildIni = "build.cfg"
-var errIni error = nil
 
 func init() {
 	flagUsage()
@@ -38,8 +37,6 @@ func init() {
 	file, err := ini.Load(buildIni)
 	if err == nil {
 		_ = file.MapTo(conf)
-	} else {
-		errIni = err
 	}
 
 	ct := reflect.TypeOf(&conf.Env).Elem()
@@ -61,11 +58,12 @@ func init() {
 		UPX:      flag.Bool("upx", conf.Build.IsUPX, "是否开启UPX压缩"),
 		Arch:     flag.Bool("arch", conf.Build.IsArch, "文件名中是否添加架构名称"),
 		Version:  flag.Bool("version", conf.Build.IsVersion, "文件名中是否添加版本号"),
+		Mode:     flag.Bool("mode", conf.Build.IsMode, "是否编译为动态链接库，例如 .dll、.so、.dylib"),
 		Platform: flag.Bool("platform", conf.Build.IsPlatform, "文件名中是否添加平台名称"),
 		Filename: flag.String("filename", conf.Build.Filename, "可执行文件名称"),
-		GOROOT:   flag.String("GOROOT", conf.Env.GOROOT, "GOROOT路径"),
-		GOOS:     flag.String("GOOS", conf.Env.GOOS, "编译目标系统"),
-		GOARCH:   flag.String("GOARCH", conf.Env.GOARCH, "编译目标平台"),
+		GOROOT:   flag.String("GOROOT", conf.Env.GOROOT, "GOROOT 路径"),
+		GOOS:     flag.String("GOOS", conf.Env.GOOS, "编译目标平台，例如 linux、windows、darwin"),
+		GOARCH:   flag.String("GOARCH", conf.Env.GOARCH, "编译目标系统架构，例如 amd64、arm64"),
 	}
 
 	flag.Parse()
@@ -115,7 +113,7 @@ func main() {
 			_ = os.Setenv(field.Tag.Get("ini"), value)
 		}
 	}
-
+	platformExt()
 	// 如果没有文件名，使用当前go.mod的模块名，其次使用目录名
 	if conf.Build.Filename == "" {
 		file, err := os.ReadFile("go.mod")
@@ -127,7 +125,6 @@ func main() {
 			conf.Build.Filename = strings.TrimSpace(module[len(module)-1])
 		}
 	}
-
 	IncrementVersion()
 
 	// 执行命令

@@ -10,6 +10,15 @@ import (
 	"strings"
 )
 
+// ANSI 彩色代码
+const (
+	colorReset  = "\033[0m"
+	colorCyan   = "\033[36m"
+	colorYellow = "\033[33m"
+	colorGreen  = "\033[32m"
+	colorBold   = "\033[1m"
+)
+
 func returnCMD(exe string, arg ...string) string {
 	cmd := exec.Command(exe, arg...)
 
@@ -44,6 +53,27 @@ func ExecCmd() {
 	cmd.Stdin = os.Stdin
 	if err := cmd.Run(); err != nil {
 		panic(err)
+	}
+}
+
+func platformExt() {
+	ext := map[bool]map[string]string{
+		true: {
+			"windows": "dll",
+			"darwin":  "dylib",
+		},
+		false: {
+			"windows": "exe",
+			"android": "apk",
+		},
+	}
+
+	if _ext, ok := ext[conf.Build.IsMode][conf.Env.GOOS]; ok {
+		conf.Other.Ext = _ext
+	} else {
+		if conf.Build.IsMode {
+			conf.Other.Ext = "so"
+		}
 	}
 }
 
@@ -86,27 +116,17 @@ func IncrementVersion() {
 	}
 
 	_filename := strings.Join(filename, "-")
-	switch conf.Env.GOOS {
-	case "windows":
-		conf.Other.File = fmt.Sprintf("%s.exe", _filename)
-	case "android":
-		conf.Other.File = fmt.Sprintf("%s.apk", _filename)
-	default:
-		conf.Other.File = fmt.Sprintf("%s", _filename)
-	}
+	conf.Other.File = fmt.Sprintf("%s.%s", _filename, conf.Other.Ext)
 }
 
 func flagUsage() {
 	flag.Usage = func() {
-		_, _ = fmt.Fprintf(os.Stderr, "程序使用帮助文档 🛠️：\n")
-		_, _ = fmt.Fprintf(os.Stderr, "用法: %s [选项]\n", filepath.Base(os.Args[0]))
-		_, _ = fmt.Fprintf(os.Stderr, "选项说明：\n")
+		_, _ = fmt.Fprintf(os.Stdout, "%s🧱 程序使用帮助文档 🛠️%s：\n", colorBold+colorGreen, colorReset)
+		_, _ = fmt.Fprintf(os.Stdout, "%s用法: %s%s [选项]%s\n", colorCyan, colorReset, filepath.Base(os.Args[0]), colorReset)
+		_, _ = fmt.Fprintf(os.Stdout, "%s选项说明：%s\n", colorYellow, colorReset)
 		flag.VisitAll(func(f *flag.Flag) {
-			if len(f.Name) <= 3 {
-				_, _ = fmt.Fprintf(os.Stderr, "   -%s\t\t%s (当前值: %q)\n", f.Name, f.Usage, f.DefValue)
-			} else {
-				_, _ = fmt.Fprintf(os.Stderr, "   -%s\t%s (当前值: %q)\n", f.Name, f.Usage, f.DefValue)
-			}
+			_, _ = fmt.Fprintf(os.Stdout, "  %s-%-8s%s %s (默认值: %s%q%s)\n", colorCyan, f.Name, colorReset, f.Usage, colorGreen, f.DefValue, colorReset)
 		})
+		_, _ = fmt.Fprintf(os.Stdout, "\n%sTips：使用 -help 查看帮助，或直接运行以使用默认参数。%s\n", colorYellow, colorReset)
 	}
 }

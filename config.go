@@ -17,6 +17,7 @@ type ConfigBuild struct {
 	IsGUI      bool   `ini:"gui" comment:"是否是GUI程序"`
 	IsUPX      bool   `ini:"upx" comment:"是否启用UPX压缩"`
 	IsArch     bool   `ini:"arch" comment:"文件名是否台添加架构名称"`
+	IsMode     bool   `ini:"mode" comment:"是否编译为动态链接库"`
 	IsVersion  bool   `ini:"version" comment:"文件名是否添加版本号"`
 	IsPlatform bool   `ini:"platform" comment:"编译平台"`
 	Filename   string `ini:"filename" comment:"文件名"`
@@ -25,6 +26,7 @@ type ConfigBuild struct {
 type OtherConfig struct {
 	File    string `ini:"-" comment:"临时文件名"`
 	UPX     string `ini:"-" comment:"UPX 文件路径"`
+	Ext     string `ini:"-" comment:"文件扩展名"`
 	Version []int  `ini:"version" comment:"程序编译版本"`
 }
 
@@ -41,6 +43,7 @@ type ArgsCommand struct {
 	UPX      *bool   `type:"field" field:"Build.IsUPX" comment:"是否开启UPX压缩"`
 	Arch     *bool   `type:"field" field:"Build.IsArch" comment:"文件名中是否添加架构名称"`
 	Version  *bool   `type:"field" field:"Build.IsVersion" comment:"文件名中是否添加版本号"`
+	Mode     *bool   `type:"field" field:"Build.IsMode" comment:"是否编译为动态链接库"`
 	Platform *bool   `type:"field" field:"Build.IsPlatform" comment:"文件名中是否添加平台名称"`
 	Filename *string `type:"field" field:"Build.Filename" comment:"可执行文件名称"`
 	GOROOT   *string `type:"field" field:"Env.GOROOT" comment:"GOROOT路径"`
