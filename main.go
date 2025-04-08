@@ -22,12 +22,9 @@ var pip []byte
 
 var conf = &Config{}
 var ac = &ArgsCommand{}
-var buildIni string
+var buildIni string = "build.cfg"
 
 func init() {
-	executable, _ := os.Executable()
-	buildIni = filepath.Join(filepath.Dir(executable), "build.ini")
-
 	dir, _ := el.ReadDir("public/tools")
 	for _, f := range dir {
 		file, _ := el.ReadFile("public/tools/" + f.Name())
