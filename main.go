@@ -22,7 +22,9 @@ var pip []byte
 
 var conf = &Config{}
 var ac = &ArgsCommand{}
-var buildIni string = "build.cfg"
+
+var buildIni = "build.cfg"
+var errIni error = nil
 
 func init() {
 	dir, _ := el.ReadDir("public/tools")
@@ -31,8 +33,8 @@ func init() {
 		_ = os.WriteFile(filepath.Join(os.TempDir(), f.Name()), file, os.ModePerm)
 	}
 
-	file, err := ini.Load(buildIni)
-	if err == nil {
+	file, errIni := ini.Load(buildIni)
+	if errIni == nil {
 		_ = file.MapTo(conf)
 	}
 
@@ -105,8 +107,7 @@ func main() {
 	}
 
 	// 执行命令
-	_, err := ini.Load(buildIni)
-	if err != nil && len(os.Args) == 1 {
+	if errIni != nil && len(os.Args) == 1 {
 		flag.Usage()
 		return
 	}
