@@ -37,33 +37,28 @@ func CmdParams(flags string) []string {
 	return []string{"build", ldflags, "-trimpath", "-v", "-x", "-o", conf.Other.File, "."}
 }
 
+func Command(exe string, arg ...string) {
+	cmd := exec.Command(exe, arg...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+	if err := cmd.Run(); err != nil {
+		panic(err.Error())
+	}
+}
+
 func ExecCmd() {
-	GoPath := filepath.Join(conf.Env.GOROOT, "bin", "go.exe")
 	var params = CmdParams(`-s -w`)
 	if conf.Build.IsGUI && conf.Env.GOOS == "windows" {
 		params = CmdParams(`-s -w -H windowsgui`)
 	}
+	Command("go", params...)
 
-	cmd := exec.Command(GoPath, params...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Stdin = os.Stdin
-	if err := cmd.Run(); err != nil {
-		panic(err.Error())
-	}
-
-	if !conf.Build.IsUPX && runtime.GOOS != "windows" {
+	if !conf.Build.IsUPX || runtime.GOOS != "windows" {
 		return
 	}
-	cmd = exec.Command(conf.Other.UPX, "--ultra-brute", "--best", "--lzma", "--brute", "--compress-exports=1", "--no-mode", "--no-owner", "--no-time", "--force", conf.Other.File)
 
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Stdin = os.Stdin
-	if err := cmd.Run(); err != nil {
-		panic(err.Error())
-	}
-
+	Command(conf.Other.UPX, "--ultra-brute", "--best", "--lzma", "--brute", "--compress-exports=1", "--no-mode", "--no-owner", "--no-time", "--force", conf.Other.File)
 }
 
 func platformExt() {
@@ -90,18 +85,18 @@ func platformExt() {
 // IncrementVersion 递增版本号，逢十进一
 func IncrementVersion() {
 	var version []string
-	num := len(conf.Other.Version) - 1
+	num := len(conf.Build.Version) - 1
 	for i := num; i >= 0; i-- {
 		// 递增当前位
-		conf.Other.Version[i]++
+		conf.Build.Version[i]++
 
 		// 如果当前位为 10，重置为 0，并继续向前一位进位
-		if conf.Other.Version[i] == 10 {
+		if conf.Build.Version[i] == 10 {
 			// 如果已经到了最左边的数字，不需要继续进位，直接结束
 			if i == 0 {
 				break
 			}
-			conf.Other.Version[i] = 0
+			conf.Build.Version[i] = 0
 		} else {
 			// 如果没有进位，直接结束
 			break
@@ -109,19 +104,19 @@ func IncrementVersion() {
 	}
 
 	// 将版本号转换为字符串
-	for _, v := range conf.Other.Version {
+	for _, v := range conf.Build.Version {
 		version = append(version, strconv.Itoa(v))
 	}
 
 	_version := fmt.Sprintf("v%s", strings.Join(version, "."))
-	filename := []string{conf.Build.Filename}
-	if conf.Build.IsPlatform {
+	filename := []string{conf.Build.Name}
+	if conf.Build.IsPlat {
 		filename = append(filename, conf.Env.GOOS)
 	}
 	if conf.Build.IsArch {
 		filename = append(filename, conf.Env.GOARCH)
 	}
-	if conf.Build.IsVersion {
+	if conf.Build.IsVer {
 		filename = append(filename, _version)
 	}
 
@@ -135,7 +130,7 @@ func flagUsage() {
 		_, _ = fmt.Fprintf(os.Stdout, "%s用法: %s%s [选项]%s\n", colorCyan, colorReset, filepath.Base(os.Args[0]), colorReset)
 		_, _ = fmt.Fprintf(os.Stdout, "%s选项说明：%s\n", colorYellow, colorReset)
 		flag.VisitAll(func(f *flag.Flag) {
-			_, _ = fmt.Fprintf(os.Stdout, "  %s-%-8s%s %s (默认值: %s%q%s)\n", colorCyan, f.Name, colorReset, f.Usage, colorGreen, f.DefValue, colorReset)
+			_, _ = fmt.Fprintf(os.Stdout, "  %s-%-8s%s %s (当前值: %s%q%s)\n", colorCyan, f.Name, colorReset, f.Usage, colorGreen, f.DefValue, colorReset)
 		})
 		_, _ = fmt.Fprintf(os.Stdout, "\n%sTips：使用 -help 查看帮助，或直接运行以使用默认参数。%s\n", colorYellow, colorReset)
 	}
