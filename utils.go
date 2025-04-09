@@ -43,7 +43,7 @@ func Command(exe string, arg ...string) {
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
 	if err := cmd.Run(); err != nil {
-		panic(err.Error())
+		panic("命令执行失败！")
 	}
 }
 

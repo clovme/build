@@ -114,15 +114,17 @@ func main() {
 			_ = os.Setenv(field.Tag.Get("ini"), value)
 		}
 	}
-	platformExt()
-	IncrementVersion()
 
+	// 平台后缀
+	platformExt()
+	// 递增版本号
+	IncrementVersion()
 	// 执行命令
 	ExecCmd()
 
 	f := ini.Empty()
 	if err := f.ReflectFrom(conf); err != nil {
-		panic(err)
+		panic("配置文件解析失败！")
 	}
 
 	if !conf.Other.Comment {
@@ -136,6 +138,6 @@ func main() {
 	}
 
 	if err := f.SaveTo(buildIni); err != nil {
-		panic(err)
+		panic("配置文件保存失败！")
 	}
 }
