@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 )
@@ -28,22 +29,30 @@ func returnCMD(exe string, arg ...string) string {
 	return strings.TrimSpace(string(output))
 }
 
+func CmdParams(flags string) []string {
+	ldflags := fmt.Sprintf("-ldflags=%s", flags)
+	if conf.Build.IsMode {
+		return []string{"build", "-buildmode=c-shared", ldflags, "-trimpath", "-v", "-x", "-o", conf.Other.File, "."}
+	}
+	return []string{"build", ldflags, "-trimpath", "-v", "-x", "-o", conf.Other.File, "."}
+}
+
 func ExecCmd() {
-	goPath := filepath.Join(conf.Env.GOROOT, "bin", "go.exe")
-	var cmdParams = []string{"build", "-ldflags", "-s -w", "-trimpath", "-v", "-x", "-o", conf.Other.File, "."}
-	if conf.Build.IsGUI {
-		cmdParams[2] = "-s -w -H windowsgui"
+	GoPath := filepath.Join(conf.Env.GOROOT, "bin", "go.exe")
+	var params = CmdParams(`-s -w`)
+	if conf.Build.IsGUI && conf.Env.GOOS == "windows" {
+		params = CmdParams(`-s -w -H windowsgui`)
 	}
 
-	cmd := exec.Command(goPath, cmdParams...)
+	cmd := exec.Command(GoPath, params...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
 	if err := cmd.Run(); err != nil {
-		panic(err)
+		panic(err.Error())
 	}
 
-	if !conf.Build.IsUPX {
+	if !conf.Build.IsUPX && runtime.GOOS != "windows" {
 		return
 	}
 	cmd = exec.Command(conf.Other.UPX, "--ultra-brute", "--best", "--lzma", "--brute", "--compress-exports=1", "--no-mode", "--no-owner", "--no-time", "--force", conf.Other.File)
@@ -52,8 +61,9 @@ func ExecCmd() {
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
 	if err := cmd.Run(); err != nil {
-		panic(err)
+		panic(err.Error())
 	}
+
 }
 
 func platformExt() {
