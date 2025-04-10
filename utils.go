@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/go-ini/ini"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -29,12 +30,12 @@ func returnCMD(exe string, arg ...string) string {
 	return strings.TrimSpace(string(output))
 }
 
-func CmdParams(flags string) []string {
+func CmdParams(flags, output string) []string {
 	ldflags := fmt.Sprintf("-ldflags=%s", flags)
 	if conf.Build.IsMode {
-		return []string{"build", "-buildmode=c-shared", ldflags, "-trimpath", "-v", "-x", "-o", conf.Other.File, "."}
+		return []string{"build", "-buildmode=c-shared", ldflags, "-trimpath", "-v", "-x", "-o", output, "."}
 	}
-	return []string{"build", ldflags, "-trimpath", "-v", "-x", "-o", conf.Other.File, "."}
+	return []string{"build", ldflags, "-trimpath", "-v", "-x", "-o", output, "."}
 }
 
 func Command(exe string, arg ...string) {
@@ -47,10 +48,10 @@ func Command(exe string, arg ...string) {
 	}
 }
 
-func ExecCmd() {
-	var params = CmdParams(`-s -w`)
+func ExecCmd(output string) {
+	var params = CmdParams(`-s -w`, output)
 	if conf.Build.IsGUI && conf.Env.GOOS == "windows" {
-		params = CmdParams(`-s -w -H windowsgui`)
+		params = CmdParams(`-s -w -H windowsgui`, output)
 	}
 	Command("go", params...)
 
@@ -58,27 +59,29 @@ func ExecCmd() {
 		return
 	}
 
-	Command(conf.Other.UPX, "--ultra-brute", "--best", "--lzma", "--brute", "--compress-exports=1", "--no-mode", "--no-owner", "--no-time", "--force", conf.Other.File)
+	Command(conf.Other.UPX, "--ultra-brute", "--best", "--lzma", "--brute", "--compress-exports=1", "--no-mode", "--no-owner", "--no-time", "--force", output)
 }
 
-func platformExt() {
+func platformExt(plat string) string {
 	ext := map[bool]map[string]string{
 		true: {
-			"windows": "dll",
-			"darwin":  "dylib",
+			"windows": ".dll",
+			"darwin":  ".dylib",
 		},
 		false: {
-			"windows": "exe",
-			"android": "apk",
+			"js":      ".wasm",
+			"windows": ".exe",
+			"android": ".apk",
 		},
 	}
 
-	if _ext, ok := ext[conf.Build.IsMode][conf.Env.GOOS]; ok {
-		conf.Other.Ext = _ext
+	if _ext, ok := ext[conf.Build.IsMode][plat]; ok {
+		return _ext
 	} else {
 		if conf.Build.IsMode {
-			conf.Other.Ext = "so"
+			return ".so"
 		}
+		return ""
 	}
 }
 
@@ -108,20 +111,23 @@ func IncrementVersion() {
 		version = append(version, strconv.Itoa(v))
 	}
 
-	_version := fmt.Sprintf("v%s", strings.Join(version, "."))
+	conf.Other.Version = fmt.Sprintf("v%s", strings.Join(version, "."))
+}
+
+func GenFilename(ext string) string {
 	filename := []string{conf.Build.Name}
-	if conf.Build.IsPlat {
+	if conf.Build.IsPlat || *ac.IsAll {
 		filename = append(filename, conf.Env.GOOS)
 	}
-	if conf.Build.IsArch {
+	if conf.Build.IsArch || *ac.IsAll {
 		filename = append(filename, conf.Env.GOARCH)
 	}
 	if conf.Build.IsVer {
-		filename = append(filename, _version)
+		filename = append(filename, conf.Other.Version)
 	}
 
 	_filename := strings.Join(filename, "-")
-	conf.Other.File = fmt.Sprintf("%s.%s", _filename, conf.Other.Ext)
+	return fmt.Sprintf("%s%s", _filename, ext)
 }
 
 func flagUsage() {
@@ -133,5 +139,79 @@ func flagUsage() {
 			_, _ = fmt.Fprintf(os.Stdout, "  %s-%-8s%s %s (当前值: %s%q%s)\n", colorCyan, f.Name, colorReset, f.Usage, colorGreen, f.DefValue, colorReset)
 		})
 		_, _ = fmt.Fprintf(os.Stdout, "\n%sTips：使用 -help 查看帮助，或直接运行以使用默认参数。%s\n", colorYellow, colorReset)
+	}
+}
+
+func SaveConfig() {
+	f := ini.Empty()
+	if err := f.ReflectFrom(conf); err != nil {
+		panic("配置文件解析失败！")
+	}
+
+	if !conf.Other.Comment {
+		// 清除掉所有注释
+		for _, section := range f.Sections() {
+			section.Comment = "" // 删除注释
+			for _, key := range section.Keys() {
+				key.Comment = "" // 删除注释
+			}
+		}
+	}
+
+	if err := f.SaveTo(buildIni); err != nil {
+		panic("配置文件保存失败！")
+	}
+}
+
+// ExecSourceBuild 执行源码编译
+func ExecSourceBuild() {
+	oldArch := conf.Env.GOARCH
+	oldPlatform := conf.Env.GOOS
+	for _, plat := range conf.Build.Platform {
+		conf.Env.GOOS = plat
+		_ = os.Setenv("GOOS", plat)
+		// 平台后缀
+		fileExt := platformExt(plat)
+		fmt.Printf("开始编译 %s 平台\n", plat)
+		fmt.Printf("Go版本: %s\n", conf.Other.GoVersion)
+
+		for _, arch := range conf.Build.Arch {
+			conf.Env.GOARCH = arch
+			_ = os.Setenv("GOARCH", arch)
+			fmt.Printf("编译架构 %s\n", conf.Env.GOARCH)
+			// 生成文件名
+			filename := GenFilename(fileExt)
+			fmt.Printf("输出文件 %s\n", filename)
+
+			// 执行命令
+			ExecCmd(filename)
+		}
+	}
+	conf.Env.GOARCH = oldArch
+	conf.Env.GOOS = oldPlatform
+}
+
+// CheckDirExist 判断文件夹是否存在
+func CheckDirExist(folderPath string) bool {
+	if _, err := os.Stat(folderPath); os.IsNotExist(err) {
+		// 文件夹不存在
+		return false
+	}
+	// 文件夹存在
+	return true
+}
+
+// UnEmbedTempFile 解压临时文件
+func UnEmbedTempFile() {
+	conf.Other.Temp = filepath.Join(os.TempDir(), "~gobuild-tmp")
+	if !CheckDirExist(conf.Other.Temp) {
+		_ = os.MkdirAll(conf.Other.Temp, os.ModePerm)
+	}
+	conf.Other.UPX = filepath.Join(conf.Other.Temp, "upx.exe")
+	ePath := fmt.Sprintf("public/%s", strings.ToLower(runtime.GOOS))
+	fileInfos, _ := ePublic.ReadDir(ePath)
+	for _, fileInfo := range fileInfos {
+		file, _ := ePublic.ReadFile(fmt.Sprintf("%s/%s", ePath, fileInfo.Name()))
+		_ = os.WriteFile(filepath.Join(conf.Other.Temp, fileInfo.Name()), file, os.ModePerm)
 	}
 }
