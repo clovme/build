@@ -27,14 +27,16 @@ var conf = &Config{
 	},
 }
 var ac = &ArgsCommand{}
-
-var buildIni = "build.cfg"
+var buildCfg = "build"
 
 func init() {
 	flagUsage()
 	// 解压临时文件
 	UnEmbedTempFile()
-	file, err := ini.Load(buildIni)
+	// 生成配置文件名
+	GenConfigFileName()
+
+	file, err := ini.Load(buildCfg)
 	if err == nil {
 		_ = file.MapTo(conf)
 	}
@@ -63,6 +65,17 @@ func init() {
 		}
 	}
 
+	// 递增版本号
+	IncrementVersion()
+}
+
+func main() {
+	defer func() {
+		if CheckDirExist(conf.Other.Temp) {
+			_ = os.RemoveAll(conf.Other.Temp)
+		}
+	}()
+
 	ac = &ArgsCommand{
 		Help:    flag.Bool("help", false, "帮助"),
 		Init:    flag.Bool("init", false, "初始化Go环境"),
@@ -83,33 +96,26 @@ func init() {
 	}
 
 	flag.Parse()
-	// 递增版本号
-	IncrementVersion()
-}
 
-func main() {
-	defer func() {
-		if CheckDirExist(conf.Other.Temp) {
-			_ = os.RemoveAll(conf.Other.Temp)
-		}
-	}()
-	
-	cmdType := reflect.TypeOf(ac).Elem()
+	cmdType := reflect.TypeOf(ac)
 	cmdValue := reflect.ValueOf(ac).Elem()
 	confValue := reflect.ValueOf(conf).Elem()
 
-	for i := 0; i < cmdType.NumField(); i++ {
-		field := cmdType.Field(i)
-
-		value, ok := cmdValue.FieldByName(field.Name).Interface().(*bool)
-		method := cmdValue.MethodByName(fmt.Sprintf("T%s", field.Tag.Get("type")))
-		method.Call([]reflect.Value{
-			reflect.ValueOf(value),
-			reflect.ValueOf(ok),
-			reflect.ValueOf(field),
-			reflect.ValueOf(cmdValue),
-			reflect.ValueOf(confValue),
-			reflect.ValueOf("field"),
+	for i := 0; i < cmdType.Elem().NumField(); i++ {
+		field := cmdType.Elem().Field(i)
+		value, ok := cmdValue.Field(i).Interface().(*bool)
+		method, _ := cmdType.MethodByName(fmt.Sprintf("T%s", field.Tag.Get("type")))
+		method.Func.Call([]reflect.Value{
+			reflect.ValueOf(ac),
+			reflect.ValueOf(ArgsCommandContext{
+				Value:     value,
+				ValueOk:   ok,
+				Field:     field,
+				CmdType:   cmdType,
+				CmdValue:  cmdValue,
+				ConfValue: confValue,
+				TagField:  "field",
+			}),
 		})
 	}
 

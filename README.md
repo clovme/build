@@ -4,19 +4,22 @@ go 项目编译工具，极限压缩工具
 ## 安装
 
 ```shell
-go install github.com/clovme/go-build
+go install github.com/clovme/build
 ```
 
 ## 使用
+
+> 使用`build`命令会使用当前项目的默认配置编译并在命令执行的目录生成配置文件`build`。
+
 ```shell
-go-build -help
+build -help
 ````
 
 ## 程序使用帮助文档
 
 ```markdown
 🧱 程序使用帮助文档 🛠️：
-用法: go-build [选项]
+用法: build [选项]
 选项说明：
     -GOARCH   编译目标系统架构，例如 amd64、arm64 (当前值: "amd64")
     -GOOS     编译目标平台，例如 linux、windows、darwin (当前值: "windows")
@@ -64,7 +67,7 @@ ver      = false
 ; 编译平台
 plat     = false
 ; 文件名
-name     = go-build
+name     = build
 ; 程序编译版本
 version  = 0,0,1
 ; 编译平台

@@ -43,6 +43,16 @@ type Config struct {
 	Other OtherConfig `ini:"other" comment:"其他配置"`
 }
 
+type ArgsCommandContext struct {
+	Value     *bool
+	ValueOk   bool
+	Field     reflect.StructField
+	CmdType   reflect.Type
+	CmdValue  reflect.Value
+	ConfValue reflect.Value
+	TagField  string
+}
+
 type ArgsCommand struct {
 	Init    *bool   `type:"Func" func:"InitEnv" comment:"初始化Go环境"`
 	Help    *bool   `type:"Func" func:"Help" comment:"帮助"`
@@ -62,7 +72,7 @@ type ArgsCommand struct {
 	IsAll   *bool   `type:"Value" func:"Build.IsAll" comment:"编译三大平台(linux、windows、darwin)"`
 }
 
-func (c ArgsCommand) EInitEnv() {
+func (c *ArgsCommand) EInitEnv() {
 	// 获取用户配置目录
 	dir, err := os.UserConfigDir()
 	if err != nil {
@@ -83,25 +93,25 @@ func (c ArgsCommand) EInitEnv() {
 	_ = os.WriteFile(filepath.Join(pipPath, "pip.ini"), pip, 0644)
 }
 
-func (c ArgsCommand) EHelp() {
+func (c *ArgsCommand) EHelp() {
 	flag.Usage()
 }
 
-func (c ArgsCommand) ECheck() {
+func (c *ArgsCommand) ECheck() {
 	Command("go", "list", "-f", "'{{.GoFiles}}'", ".")
 }
 
-func (c ArgsCommand) EList() {
+func (c *ArgsCommand) EList() {
 	Command("go", "tool", "dist", "list")
 }
 
-func (c ArgsCommand) EDefault() {
+func (c *ArgsCommand) EDefault() {
 	conf.Env.GOOS = runtime.GOOS
 	conf.Env.GOARCH = runtime.GOARCH
 	SaveConfig()
 }
 
-func (c ArgsCommand) EBuildIsAll(isDefault bool) {
+func (c *ArgsCommand) EBuildIsAll(isDefault bool) {
 	if isDefault {
 		if len(conf.Build.Arch) == 0 || len(conf.Build.Platform) == 0 {
 			conf.Build.Arch = []string{"amd64", "arm64"}
@@ -114,38 +124,47 @@ func (c ArgsCommand) EBuildIsAll(isDefault bool) {
 }
 
 // TValue 处理值类型函数
-func (c ArgsCommand) TValue(value *bool, valueOk bool, field reflect.StructField, cmdValue, confValue reflect.Value, tagField string) {
-	if !valueOk {
+func (c *ArgsCommand) TValue(ctx ArgsCommandContext) {
+	// 数据断言成功
+	if !ctx.ValueOk {
 		return
 	}
-	funcName := strings.Replace(field.Tag.Get("func"), ".", "", -1)
-	method := cmdValue.MethodByName(fmt.Sprintf("E%s", funcName))
-	method.Call([]reflect.Value{
-		reflect.ValueOf(*value),
+	funcName := strings.Replace(ctx.Field.Tag.Get("func"), ".", "", -1)
+	method, _ := ctx.CmdType.MethodByName(fmt.Sprintf("E%s", funcName))
+	method.Func.Call([]reflect.Value{
+		reflect.ValueOf(ac),
+		reflect.ValueOf(*ctx.Value),
 	})
 
-	c.TField(value, valueOk, field, cmdValue, confValue, "func")
+	ctx.TagField = "func"
+
+	c.TField(ctx)
 }
 
 // TFunc 执行函数类型函数，执行完函数就结束程序
-func (c ArgsCommand) TFunc(value *bool, valueOk bool, field reflect.StructField, cmdValue, confValue reflect.Value, tagField string) {
-	if !(*value && valueOk) {
+func (c *ArgsCommand) TFunc(ctx ArgsCommandContext) {
+	// 数据断言成功
+	if !ctx.ValueOk {
 		return
 	}
-	method := cmdValue.MethodByName(fmt.Sprintf("E%s", field.Tag.Get("func")))
-	method.Call([]reflect.Value{})
+	// 数据为true
+	if !*ctx.Value {
+		return
+	}
+	method, _ := ctx.CmdType.MethodByName(fmt.Sprintf("E%s", ctx.Field.Tag.Get("func")))
+	method.Func.Call([]reflect.Value{reflect.ValueOf(ac)})
 	os.Exit(0)
 }
 
 // TField 处理字段类型函数，从命令行赋值给配置文件
-func (c ArgsCommand) TField(value *bool, valueOk bool, field reflect.StructField, cmdValue, confValue reflect.Value, tagField string) {
-	tf := strings.Split(field.Tag.Get(tagField), ".")
-	getField := confValue.FieldByName(tf[0]).FieldByName(tf[1])
+func (c *ArgsCommand) TField(ctx ArgsCommandContext) {
+	tf := strings.Split(ctx.Field.Tag.Get(ctx.TagField), ".")
+	getField := ctx.ConfValue.FieldByName(tf[0]).FieldByName(tf[1])
 	// 处理字段
-	if valueOk {
-		getField.SetBool(*value)
+	if ctx.ValueOk {
+		getField.SetBool(*ctx.Value)
 	} else {
-		value, _ := cmdValue.FieldByName(field.Name).Interface().(*string)
+		value, _ := ctx.CmdValue.FieldByName(ctx.Field.Name).Interface().(*string)
 		getField.SetString(*value)
 	}
 }

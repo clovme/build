@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"runtime"
 	"strconv"
 	"strings"
@@ -158,7 +159,7 @@ func SaveConfig() {
 		}
 	}
 
-	if err := f.SaveTo(buildIni); err != nil {
+	if err := f.SaveTo(buildCfg); err != nil {
 		panic("配置文件保存失败！")
 	}
 }
@@ -213,5 +214,33 @@ func UnEmbedTempFile() {
 	for _, fileInfo := range fileInfos {
 		file, _ := ePublic.ReadFile(fmt.Sprintf("%s/%s", ePath, fileInfo.Name()))
 		_ = os.WriteFile(filepath.Join(conf.Other.Temp, fileInfo.Name()), file, os.ModePerm)
+	}
+}
+
+// GenConfigFileName 生成配置文件名
+func GenConfigFileName() {
+	path := os.Args[0]
+	ext := filepath.Ext(path)
+	buildCfg = filepath.Base(path[:len(path)-len(ext)])
+}
+
+func xxxxxxxxxxx() {
+	cmdType := reflect.TypeOf(ac).Elem()
+	cmdValue := reflect.ValueOf(ac).Elem()
+	confValue := reflect.ValueOf(conf).Elem()
+
+	for i := 0; i < cmdType.NumField(); i++ {
+		field := cmdType.Field(i)
+
+		value, ok := cmdValue.FieldByName(field.Name).Interface().(*bool)
+		method := cmdValue.MethodByName(fmt.Sprintf("T%s", field.Tag.Get("type")))
+		method.Call([]reflect.Value{
+			reflect.ValueOf(value),
+			reflect.ValueOf(ok),
+			reflect.ValueOf(field),
+			reflect.ValueOf(cmdValue),
+			reflect.ValueOf(confValue),
+			reflect.ValueOf("field"),
+		})
 	}
 }

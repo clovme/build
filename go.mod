@@ -1,4 +1,4 @@
-module github.com/clovme/go-build
+module github.com/clovme/build
 
 go 1.23
 
