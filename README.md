@@ -32,7 +32,7 @@ build -help
     -init     初始化Go环境 (当前值: "false")
     -list     查看当前环境可交叉编译的所有系统+架构 (当前值: "false")
     -mode     是否编译为动态链接库，例如 .dll、.so、.dylib (当前值: "false")
-    -name     可执行文件名称 (当前值: "go-build")
+    -name     可执行文件名称 (当前值: "build")
     -note     配置文件中是否写入注释 (当前值: "false")
     -plat     文件名中是否添加平台名称 (当前值: "false")
     -upx      是否开启UPX压缩 (当前值: "false")

@@ -1,13 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"github.com/go-ini/ini"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"reflect"
 	"runtime"
 	"strconv"
 	"strings"
@@ -22,7 +22,7 @@ const (
 	colorBold   = "\033[1m"
 )
 
-func returnCMD(exe string, arg ...string) string {
+func CmdValue(exe string, arg ...string) string {
 	cmd := exec.Command(exe, arg...)
 
 	// 获取命令的输出
@@ -116,14 +116,14 @@ func IncrementVersion() {
 }
 
 func GenFilename(ext string) string {
-	filename := []string{conf.Build.Name}
-	if conf.Build.IsPlat || *ac.IsAll {
+	filename := []string{conf.FileName.Name}
+	if conf.FileName.IsPlat || *ac.IsAll {
 		filename = append(filename, conf.Env.GOOS)
 	}
-	if conf.Build.IsArch || *ac.IsAll {
+	if conf.FileName.IsArch || *ac.IsAll {
 		filename = append(filename, conf.Env.GOARCH)
 	}
-	if conf.Build.IsVer {
+	if conf.FileName.IsVer {
 		filename = append(filename, conf.Other.Version)
 	}
 
@@ -162,13 +162,20 @@ func SaveConfig() {
 	if err := f.SaveTo(buildCfg); err != nil {
 		panic("配置文件保存失败！")
 	}
+
+	var buf bytes.Buffer
+	buf.WriteString("; go install github.com/clovme/build\n\n")
+
+	_, _ = f.WriteTo(&buf) // 把 ini 配置写进去
+
+	_ = os.WriteFile(buildCfg, buf.Bytes(), 0644)
 }
 
 // ExecSourceBuild 执行源码编译
 func ExecSourceBuild() {
 	oldArch := conf.Env.GOARCH
 	oldPlatform := conf.Env.GOOS
-	for _, plat := range conf.Build.Platform {
+	for _, plat := range conf.Build.Plat {
 		conf.Env.GOOS = plat
 		_ = os.Setenv("GOOS", plat)
 		// 平台后缀
@@ -222,25 +229,4 @@ func GenConfigFileName() {
 	path := os.Args[0]
 	ext := filepath.Ext(path)
 	buildCfg = filepath.Base(path[:len(path)-len(ext)])
-}
-
-func xxxxxxxxxxx() {
-	cmdType := reflect.TypeOf(ac).Elem()
-	cmdValue := reflect.ValueOf(ac).Elem()
-	confValue := reflect.ValueOf(conf).Elem()
-
-	for i := 0; i < cmdType.NumField(); i++ {
-		field := cmdType.Field(i)
-
-		value, ok := cmdValue.FieldByName(field.Name).Interface().(*bool)
-		method := cmdValue.MethodByName(fmt.Sprintf("T%s", field.Tag.Get("type")))
-		method.Call([]reflect.Value{
-			reflect.ValueOf(value),
-			reflect.ValueOf(ok),
-			reflect.ValueOf(field),
-			reflect.ValueOf(cmdValue),
-			reflect.ValueOf(confValue),
-			reflect.ValueOf("field"),
-		})
-	}
 }

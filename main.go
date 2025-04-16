@@ -48,20 +48,23 @@ func init() {
 		field := ct.Field(i)
 		cvField := cv.FieldByName(field.Name)
 		value, _ := cvField.Interface().(string)
-		if value == "" {
-			cv.FieldByName(field.Name).SetString(returnCMD("go", "env", field.Tag.Get("ini")))
+		if len(strings.TrimSpace(value)) == 0 {
+			cv.FieldByName(field.Name).SetString(CmdValue("go", "env", field.Tag.Get("ini")))
 		}
 	}
-	conf.Other.GoVersion = returnCMD("go", "version")
+
+	if len(strings.TrimSpace(conf.Other.GoVersion)) == 0 {
+		conf.Other.GoVersion = runtime.Version()
+	}
 	// 如果没有文件名，使用当前go.mod的模块名，其次使用目录名
-	if conf.Build.Name == "" {
+	if conf.FileName.Name == "" {
 		file, err := os.ReadFile("go.mod")
 		if err != nil {
 			dir, _ := os.Getwd()
-			conf.Build.Name = filepath.Base(dir)
+			conf.FileName.Name = filepath.Base(dir)
 		} else {
 			module := strings.Split(strings.Split(string(file), "\n")[0][7:], "/")
-			conf.Build.Name = strings.TrimSpace(module[len(module)-1])
+			conf.FileName.Name = strings.TrimSpace(module[len(module)-1])
 		}
 	}
 
@@ -81,11 +84,11 @@ func main() {
 		Init:    flag.Bool("init", false, "初始化Go环境"),
 		IsGUI:   flag.Bool("gui", conf.Build.IsGUI, "是否是GUI编译"),
 		IsUPX:   flag.Bool("upx", conf.Build.IsUPX, "是否开启UPX压缩"),
-		IsArch:  flag.Bool("arch", conf.Build.IsArch, "文件名中是否添加架构名称"),
-		IsVer:   flag.Bool("ver", conf.Build.IsVer, "文件名中是否添加版本号"),
+		IsArch:  flag.Bool("arch", conf.FileName.IsArch, "文件名中是否添加架构名称"),
+		IsVer:   flag.Bool("ver", conf.FileName.IsVer, "文件名中是否添加版本号"),
 		IsMode:  flag.Bool("mode", conf.Build.IsMode, "是否编译为动态链接库，例如 .dll、.so、.dylib"),
-		IsPlat:  flag.Bool("plat", conf.Build.IsPlat, "文件名中是否添加平台名称"),
-		Name:    flag.String("name", conf.Build.Name, "可执行文件名称"),
+		IsPlat:  flag.Bool("plat", conf.FileName.IsPlat, "文件名中是否添加平台名称"),
+		Name:    flag.String("name", conf.FileName.Name, "可执行文件名称"),
 		GOOS:    flag.String("GOOS", conf.Env.GOOS, "编译目标平台，例如 linux、windows、darwin"),
 		GOARCH:  flag.String("GOARCH", conf.Env.GOARCH, "编译目标系统架构，例如 amd64、arm64"),
 		Check:   flag.Bool("check", false, "快速检测此项目那些文件是可构建的命令"),
@@ -120,8 +123,8 @@ func main() {
 	}
 
 	// 配置文件名
-	ext := filepath.Ext(conf.Build.Name)
-	conf.Build.Name = conf.Build.Name[:len(conf.Build.Name)-len(ext)]
+	ext := filepath.Ext(conf.FileName.Name)
+	conf.FileName.Name = conf.FileName.Name[:len(conf.FileName.Name)-len(ext)]
 
 	// 设置环境变量
 	envt := reflect.TypeOf(&conf.Env).Elem()
