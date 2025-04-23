@@ -1,10 +1,9 @@
-# go build
-go 项目编译工具，极限压缩工具
+# go 项目编译工具，极限压缩工具
 
 ## 安装
 
 ```shell
-go install github.com/clovme/build
+go install github.com/clovme/build@latest
 ```
 
 ## 使用

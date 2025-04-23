@@ -36,6 +36,7 @@ type OtherConfig struct {
 	UPX       string `ini:"-" comment:"UPX 文件路径"`
 	Temp      string `ini:"-" comment:"临时路径"`
 	Version   string `ini:"-" comment:"临时保存版本号"`
+	Change    bool   `ini:"-" comment:"配置文件改变"`
 	Comment   bool   `ini:"comment" comment:"是否开启配置文件注释"`
 	GoVersion string `ini:"go_version" comment:"当前项目Go版本"`
 }
@@ -166,9 +167,19 @@ func (c *ArgsCommand) TField(ctx ArgsCommandContext) {
 	getField := ctx.ConfValue.FieldByName(tf[0]).FieldByName(tf[1])
 	// 处理字段
 	if ctx.ValueOk {
+		oldValue, _ := getField.Interface().(bool)
+		if oldValue == *ctx.Value {
+			return // 没有变化
+		}
+		conf.Other.Change = true // 配置文件改变
 		getField.SetBool(*ctx.Value)
 	} else {
+		oldValue, _ := getField.Interface().(string)
 		value, _ := ctx.CmdValue.FieldByName(ctx.Field.Name).Interface().(*string)
+		if oldValue == *value {
+			return // 没有变化
+		}
+		conf.Other.Change = true // 配置文件改变
 		getField.SetString(*value)
 	}
 }

@@ -144,6 +144,10 @@ func flagUsage() {
 }
 
 func SaveConfig() {
+	// true 配置文件改变
+	if !conf.Other.Change {
+		return
+	}
 	f := ini.Empty()
 	if err := f.ReflectFrom(conf); err != nil {
 		panic("配置文件解析失败！")
@@ -164,7 +168,7 @@ func SaveConfig() {
 	}
 
 	var buf bytes.Buffer
-	buf.WriteString("; go install github.com/clovme/build\n\n")
+	buf.WriteString("; go install github.com/clovme/build@latest\n\n")
 
 	_, _ = f.WriteTo(&buf) // 把 ini 配置写进去
 

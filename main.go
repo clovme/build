@@ -25,6 +25,9 @@ var conf = &Config{
 	Build: BuildConfig{
 		Version: []int{0, 0, 0},
 	},
+	Other: OtherConfig{
+		Change: false,
+	},
 }
 var ac = &ArgsCommand{}
 var buildCfg = "build"
@@ -68,17 +71,6 @@ func init() {
 		}
 	}
 
-	// 递增版本号
-	IncrementVersion()
-}
-
-func main() {
-	defer func() {
-		if CheckDirExist(conf.Other.Temp) {
-			_ = os.RemoveAll(conf.Other.Temp)
-		}
-	}()
-
 	ac = &ArgsCommand{
 		Help:    flag.Bool("help", false, "帮助"),
 		Init:    flag.Bool("init", false, "初始化Go环境"),
@@ -97,8 +89,17 @@ func main() {
 		List:    flag.Bool("list", false, "查看当前环境可交叉编译的所有系统+架构"),
 		Default: flag.Bool("default", false, fmt.Sprintf("使用默认(本机)编译环境(%s/%s)", runtime.GOOS, runtime.GOARCH)),
 	}
-
 	flag.Parse()
+	// 递增版本号
+	IncrementVersion()
+}
+
+func main() {
+	defer func() {
+		if CheckDirExist(conf.Other.Temp) {
+			_ = os.RemoveAll(conf.Other.Temp)
+		}
+	}()
 
 	cmdType := reflect.TypeOf(ac)
 	cmdValue := reflect.ValueOf(ac).Elem()
