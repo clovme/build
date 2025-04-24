@@ -141,7 +141,7 @@ func main() {
 		}
 	}
 	// 执行编译命令
-	//ExecSourceBuild()
+	ExecSourceBuild()
 	// 保存配置文件
 	SaveConfig()
 }
