@@ -23,6 +23,7 @@ type BuildFileName struct {
 }
 
 type BuildConfig struct {
+	IsGen   bool     `ini:"gen" comment:"是否执行go generate命令"`
 	IsGUI   bool     `ini:"gui" comment:"是否是GUI程序"`
 	IsAll   bool     `ini:"all" comment:"编译三大平台(linux、windows、darwin)"`
 	IsUPX   bool     `ini:"upx" comment:"是否启用UPX压缩"`
@@ -59,6 +60,7 @@ type ArgsCommandContext struct {
 }
 
 type ArgsCommand struct {
+	IsGen   *bool   `type:"Value" func:"Build.IsGen" comment:"编译三大平台(linux、windows、darwin)"`
 	Init    *bool   `type:"Func" func:"InitEnv" comment:"初始化Go环境"`
 	Help    *bool   `type:"Func" func:"Help" comment:"帮助"`
 	Check   *bool   `type:"Func" func:"Check" comment:"构建器快速诊断命令"`
@@ -125,6 +127,12 @@ func (c *ArgsCommand) EBuildIsAll(isDefault bool) {
 	} else {
 		conf.Build.Arch = []string{conf.Env.GOARCH}
 		conf.Build.Plat = []string{conf.Env.GOOS}
+	}
+}
+
+func (c *ArgsCommand) EBuildIsGen(isDefault bool) {
+	if isDefault {
+		Command("go", "generate", "./...")
 	}
 }
 

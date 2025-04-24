@@ -1,3 +1,5 @@
+//go:generate go run internal/gen/gen_xxx.go
+
 package main
 
 import (
@@ -72,6 +74,7 @@ func init() {
 	}
 
 	ac = &ArgsCommand{
+		IsGen:   flag.Bool("gen", false, "执行go generate命令(建议:internal/gen)"),
 		Help:    flag.Bool("help", false, "帮助"),
 		Init:    flag.Bool("init", false, "初始化Go环境"),
 		IsGUI:   flag.Bool("gui", conf.Build.IsGUI, "是否是GUI编译"),
@@ -138,7 +141,7 @@ func main() {
 		}
 	}
 	// 执行编译命令
-	ExecSourceBuild()
+	//ExecSourceBuild()
 	// 保存配置文件
 	SaveConfig()
 }
