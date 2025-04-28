@@ -10,11 +10,13 @@ import (
 	"strings"
 )
 
+// EnvConfig 环境变量配置
 type EnvConfig struct {
 	GOOS   string `ini:"GOOS" comment:"GO 编译平台"`
 	GOARCH string `ini:"GOARCH" comment:"GO 编译架构"`
 }
 
+// BuildFileName 编译生成的文件名配置
 type BuildFileName struct {
 	Name   string `ini:"name" comment:"文件名"`
 	IsPlat bool   `ini:"plat" comment:"编译平台"`
@@ -22,6 +24,7 @@ type BuildFileName struct {
 	IsVer  bool   `ini:"ver" comment:"文件名是否添加版本号"`
 }
 
+// BuildConfig 编译配置
 type BuildConfig struct {
 	IsGen   bool     `ini:"gen" comment:"是否执行go generate命令"`
 	IsGUI   bool     `ini:"gui" comment:"是否是GUI程序"`
@@ -33,6 +36,7 @@ type BuildConfig struct {
 	Version []int    `ini:"version" comment:"程序编译版本"`
 }
 
+// OtherConfig 其他配置
 type OtherConfig struct {
 	UPX       string `ini:"-" comment:"UPX 文件路径"`
 	Temp      string `ini:"-" comment:"临时路径"`
@@ -42,6 +46,7 @@ type OtherConfig struct {
 	GoVersion string `ini:"go_version" comment:"当前项目Go版本"`
 }
 
+// Config 配置文件
 type Config struct {
 	Env      EnvConfig     `ini:"env" comment:"环境变量配置"`
 	Build    BuildConfig   `ini:"build" comment:"编译配置"`
@@ -49,6 +54,7 @@ type Config struct {
 	Other    OtherConfig   `ini:"other" comment:"其他配置"`
 }
 
+// ArgsCommandContext 命令上下文参数传递
 type ArgsCommandContext struct {
 	Value     *bool
 	ValueOk   bool
@@ -59,8 +65,9 @@ type ArgsCommandContext struct {
 	TagField  string
 }
 
+// ArgsCommand 命令行参数
 type ArgsCommand struct {
-	IsGen   *bool   `type:"Value" func:"Build.IsGen" comment:"编译三大平台(linux、windows、darwin)"`
+	IsGen   *bool   `type:"Value" func:"Build.IsGen" comment:"是否执行go generate命令"`
 	Init    *bool   `type:"Func" func:"InitEnv" comment:"初始化Go环境"`
 	Help    *bool   `type:"Func" func:"Help" comment:"帮助"`
 	Check   *bool   `type:"Func" func:"Check" comment:"构建器快速诊断命令"`
