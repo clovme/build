@@ -1,4 +1,4 @@
-# go 项目编译工具，极限压缩工具
+# Go 项目编译工具，极限压缩工具
 
 ## 安装
 
@@ -90,6 +90,12 @@ comment    = true
 go_version = go1.23.4
 ```
 
-> filename.arch=true, filename.plat=true, filename.ver=true 时，生成的文件名:
-> 
-> 生成的文件名: `程序名称-windows-amd64-v0.0.1.exe`
+> ```ini
+> [filename]
+> name = build
+> plat = true
+> arch = true
+> ver  = true
+> ```
+>
+> 生成的文件名: `build-windows-amd64-v0.0.1.exe`
