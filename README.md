@@ -43,6 +43,8 @@ Tips：使用 -help 查看帮助，或直接运行以使用默认参数。
 
 ## 默认配置文件
 ```ini
+; go install github.com/clovme/build@latest
+
 ; 环境变量配置
 [env]
 ; GO 编译平台
@@ -52,35 +54,42 @@ GOARCH = amd64
 
 ; 编译配置
 [build]
+; 是否执行go generate命令
+gen     = false
 ; 是否是GUI程序
-gui      = false
+gui     = false
 ; 编译三大平台(linux、windows、darwin)
-all      = false
+all     = false
 ; 是否启用UPX压缩
-upx      = false
-; 文件名是否台添加架构名称
-arch     = amd64
+upx     = false
 ; 是否编译为动态链接库
-mode     = false
-; 文件名是否添加版本号
-ver      = false
+mode    = false
 ; 编译平台
-plat     = false
-; 文件名
-name     = build
+plat    = windows
+; 编译架构
+arch    = amd64
 ; 程序编译版本
-version  = 0,0,1
+version = 0,0,1
+
+; 编译文件名配置
+[filename]
+; 文件名
+name = build
 ; 编译平台
-platform = windows
+plat = true
+; 文件名是否台添加架构名称
+arch = true
+; 文件名是否添加版本号
+ver  = true
 
 ; 其他配置
 [other]
 ; 是否开启配置文件注释
 comment    = true
 ; 当前项目Go版本
-go_version = go version go1.23.4 windows/amd64
+go_version = go1.23.4
 ```
 
-> arch=true, plat=true, ver=true 时，生成的文件名:
+> filename.arch=true, filename.plat=true, filename.ver=true 时，生成的文件名:
 > 
 > 生成的文件名: `程序名称-windows-amd64-v0.0.1.exe`
