@@ -6,11 +6,13 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
+	"text/template"
 )
 
 // EInitEnv 初始化环境变量
@@ -71,20 +73,8 @@ func (c *ArgsCommand) EGenGinRouter() {
 	routes := make(map[string][]Route)
 	fset := token.NewFileSet()
 
-	// 判断./controllers是否存在
-	if !IsDirExist("controllers") {
-		if err := os.Mkdir("controllers", os.ModePerm); err != nil {
-			fmt.Println("❌ 出错啦：controllers 目录创建失败！")
-			return
-		}
-		if err := os.WriteFile("controllers/example.go", []byte(controller), os.ModePerm); err != nil {
-			fmt.Println("❌ 出错啦：example.go 文件创建失败！")
-			return
-		}
-	}
-
-	// 递归遍历 controllers 目录下所有 go 文件
-	err := filepath.WalkDir("controllers", func(path string, d os.DirEntry, err error) error {
+	// 递归遍历 controller 目录下所有 go 文件
+	err := filepath.WalkDir("controller", func(path string, d os.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -136,4 +126,54 @@ func (c *ArgsCommand) EGenGinRouter() {
 	if writeRouters(routes) != nil {
 		fmt.Println("❌ 出错啦：", err)
 	}
+}
+
+// EGin 生成Gin框架项目
+func (c *ArgsCommand) EGin() {
+	if files, _ := os.ReadDir("."); len(files) > 0 {
+		fmt.Print("❌ 此目录下已有文件，是否强制执行？(y/n)：")
+		var input string
+		_, _ = fmt.Scanln(&input)
+		if strings.ToLower(input) != "y" {
+			return
+		}
+	}
+
+	// 要填充的数据
+	data := GinTemplateData{
+		ProjectName: conf.FileName.Name,
+	}
+
+	_ = fs.WalkDir(ePublic, "public/gin", func(path string, d fs.DirEntry, err error) error {
+		tempPath := strings.Replace(path, "public/gin/", "", 1)
+		// 判断是否是文件夹
+		if d.IsDir() {
+			if !IsDirExist(tempPath) {
+				_ = os.MkdirAll(tempPath, os.ModePerm)
+			}
+		} else {
+			goFile := strings.Replace(tempPath, ".tpl", ".go", 1)
+			if !IsFileExist(goFile) {
+				// 读取模板文件
+				tmpl, _ := ePublic.ReadFile(path)
+				// 创建一个新的模板，解析并执行模板
+				t, _ := template.New("constant").Parse(string(tmpl))
+
+				// 输出解析结果，可以写入文件
+				file, _ := os.Create(goFile)
+				defer file.Close()
+
+				// 执行模板，填充数据，并写入文件
+				_ = t.Execute(file, data)
+
+				fmt.Printf("✅ 创建文件：%s\n", goFile)
+			}
+		}
+		return nil
+	})
+
+	c.EGenGinRouter()
+
+	Command("go", "mod", "init", conf.FileName.Name)
+	Command("go", "mod", "tidy")
 }

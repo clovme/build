@@ -171,7 +171,7 @@ func flagUsage() {
 // SaveConfig 保存配置文件
 func SaveConfig() {
 	// true 配置文件改变
-	if !conf.Other.Change && IsDirExist(buildCfg) {
+	if !conf.Other.Change && IsFileExist(buildCfg) {
 		return
 	}
 	f := ini.Empty()

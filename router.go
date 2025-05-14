@@ -20,6 +20,11 @@ var (
 	//permissionRegex = regexp.MustCompile(`@Permission\s+([^\s]+)`)
 )
 
+// GinTemplateData 定义一个结构体，用来填充模板
+type GinTemplateData struct {
+	ProjectName string
+}
+
 type Route struct {
 	HTTPMethod  string
 	Path        string
@@ -73,53 +78,37 @@ func (r *routeGroup) register() {
 
 const initialize = `package routers
 
-import "github.com/gin-gonic/gin"
+import (
+	"{{ .ProjectName }}/middleware"
+	"github.com/gin-gonic/gin"
+	"net/http"
+)
 
-func Initialization(engine *gin.Engine) {
-	routers := routeGroup{
-		// 这里添加路由组和中间件
-	}
-
-	routers.register()
-}`
-
-const controller = `// @Router	/users [get] (重要参数，路由配置)
-// @Group	public (重要参数，路由分组和权限控制)
-
-package controllers
-
-import "github.com/gin-gonic/gin"
-
-// GetUsers			godoc
-// @Summary			获取用户信息
-// @Description 	根据ID获取用户详细信息
-// @Tags        	用户模块
-// @Accept       	json
-// @Produce      	json
-// @Success      	200  {object}  UserResponse
-// @Router			/users [get]
-// @Group 			public
-func GetUsers(c *gin.Context) {
-	c.JSON(200, gin.H{
-		"message": "GET Users",
+// registerNoRoute 注册404处理
+func registerNoRoute(engine *gin.Engine) {
+	engine.NoRoute(func(c *gin.Context) {
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": "请输入正确的请求地址!",
+		})
 	})
 }
 
+func Initialization(engine *gin.Engine) {
+	engine.Use(
+		middleware.CorsMiddleware([]string{"127.0.0.1:8080", "localhost:8080"}),
+		middleware.RecoveryMiddleware(),
+	)
 
-// PutUsers			godoc
-// @Summary			获取用户信息
-// @Description 	根据ID获取用户详细信息
-// @Tags        	用户模块
-// @Accept       	json
-// @Produce      	json
-// @Param        	id   path      int  true  "用户ID"
-// @Success      	200  {object}  UserResponse
-// @Router			/users/{id} [put]
-// @Group 			admin
-func PutUsers(c *gin.Context) {
-	c.JSON(200, gin.H{
-		"message": "PUT Users",
-	})
+	routers := routeGroup{
+		public: engine.Group("/api"),
+		admin:  engine.Group("/api"),
+		noAuth: engine.Group("/api", middleware.NoAuth()),
+	}
+
+	routers.register()
+
+	// 注册404处理
+	registerNoRoute(engine)
 }`
 
 func writeRouters(routers map[string][]Route) error {
@@ -183,7 +172,19 @@ func writeRouters(routers map[string][]Route) error {
 
 	// 判断文件 routers/initialize.go 是否存在，不存在则创建
 	if !IsFileExist(initializePath) {
-		os.WriteFile(initializePath, []byte(initialize), os.ModePerm)
+		// 创建一个新的模板，解析并执行模板
+		t, _ := template.New("initialize").Parse(initialize)
+
+		// 输出解析结果，可以写入文件
+		file, _ := os.Create(initializePath)
+		defer file.Close()
+
+		// 要填充的数据
+		_data := GinTemplateData{
+			ProjectName: conf.FileName.Name,
+		}
+		// 执行模板，填充数据，并写入文件
+		_ = t.Execute(file, _data)
 	}
 
 	// 输出

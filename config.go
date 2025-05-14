@@ -69,6 +69,7 @@ type ArgsCommandContext struct {
 type ArgsCommand struct {
 	IsGen   *bool   `type:"Value" func:"Build.IsGen" comment:"是否执行go generate命令"`
 	Air     *bool   `type:"Func" func:"Air" comment:"go项目热更新工具Air"`
+	Gin     *bool   `type:"Func" func:"Gin" comment:"在文件夹中生成Gin框架项目"`
 	Router  *bool   `type:"Func" func:"GenGinRouter" comment:"生成Gin路由文件"`
 	Init    *bool   `type:"Func" func:"InitEnv" comment:"初始化Go环境"`
 	Help    *bool   `type:"Func" func:"Help" comment:"帮助"`
