@@ -57,6 +57,15 @@ func (c *ArgsCommand) EDefault() {
 	SaveConfig()
 }
 
+// EAir 启动Air热加载服务
+func (c *ArgsCommand) EAir() {
+	CreateAirToml()
+	if !IsCommandExists("air") {
+		Command("go", "install", "github.com/air-verse/air@latest")
+	}
+	Command("air")
+}
+
 // EGenGinRouter 生成Gin路由文件
 func (c *ArgsCommand) EGenGinRouter() {
 	routes := make(map[string][]Route)
@@ -103,12 +112,12 @@ func (c *ArgsCommand) EGenGinRouter() {
 					for _, comment := range fn.Doc.List {
 						// 匹配 @Route
 						if routeMatches := routeRegex.FindStringSubmatch(comment.Text); routeMatches != nil {
-							route.Path = re.ReplaceAllString(routeMatches[1], `:$1`)
-							route.HTTPMethod = strings.ToUpper(routeMatches[2])
+							route.Path = re.ReplaceAllString(strings.TrimSpace(routeMatches[1]), `:$1`)
+							route.HTTPMethod = strings.ToUpper(strings.TrimSpace(routeMatches[2]))
 						}
 						// 匹配 @Group
 						if groupMatches := groupRegex.FindStringSubmatch(comment.Text); groupMatches != nil {
-							group = strings.ToLower(groupMatches[1])
+							group = strings.TrimSpace(groupMatches[1])
 						}
 					}
 					fmt.Printf("发现路由: %s %s %s -> %s.%s\n", group, route.HTTPMethod, route.Path, pkgName, fn.Name.Name)

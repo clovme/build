@@ -69,8 +69,7 @@ func (r *routeGroup) register() {
 {{- if lt $gIndex (sub1 (len $.Grouped)) }}
 {{ end }}
 {{- end }}
-}
-`
+}`
 
 const initialize = `package routers
 
@@ -82,8 +81,7 @@ func Initialization(engine *gin.Engine) {
 	}
 
 	routers.register()
-}
-`
+}`
 
 const controller = `// @Router	/users [get] (重要参数，路由配置)
 // @Group	public (重要参数，路由分组和权限控制)
@@ -122,8 +120,7 @@ func PutUsers(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"message": "PUT Users",
 	})
-}
-`
+}`
 
 func writeRouters(routers map[string][]Route) error {
 	funcMap := template.FuncMap{
@@ -185,7 +182,7 @@ func writeRouters(routers map[string][]Route) error {
 	}
 
 	// 判断文件 routers/initialize.go 是否存在，不存在则创建
-	if !IsDirExist(initializePath) {
+	if !IsFileExist(initializePath) {
 		os.WriteFile(initializePath, []byte(initialize), os.ModePerm)
 	}
 
