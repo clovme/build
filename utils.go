@@ -11,6 +11,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"unicode"
 )
 
 // ANSI 彩色代码
@@ -22,6 +23,7 @@ const (
 	colorBold   = "\033[1m"
 )
 
+// CmdValue 执行命令并获取输出
 func CmdValue(exe string, arg ...string) string {
 	cmd := exec.Command(exe, arg...)
 
@@ -31,6 +33,7 @@ func CmdValue(exe string, arg ...string) string {
 	return strings.TrimSpace(string(output))
 }
 
+// CmdParams 构建命令参数
 func CmdParams(flags, output string) []string {
 	ldflags := fmt.Sprintf("-ldflags=%s", flags)
 	if conf.Build.IsMode {
@@ -39,6 +42,7 @@ func CmdParams(flags, output string) []string {
 	return []string{"build", ldflags, "-trimpath", "-v", "-x", "-o", output, "."}
 }
 
+// Command 执行控制台输出命令
 func Command(exe string, arg ...string) {
 	cmd := exec.Command(exe, arg...)
 	cmd.Stdout = os.Stdout
@@ -49,6 +53,7 @@ func Command(exe string, arg ...string) {
 	}
 }
 
+// ExecCmd 执行编译命令
 func ExecCmd(output string) {
 	var params = CmdParams(`-s -w`, output)
 	if conf.Build.IsGUI && conf.Env.GOOS == "windows" {
@@ -63,7 +68,8 @@ func ExecCmd(output string) {
 	Command(conf.Other.UPX, "--ultra-brute", "--best", "--lzma", "--brute", "--compress-exports=1", "--no-mode", "--no-owner", "--no-time", "--force", output)
 }
 
-func platformExt(plat string) string {
+// PlatformExt 获取平台后缀名
+func PlatformExt(plat string) string {
 	ext := map[bool]map[string]string{
 		true: {
 			"windows": ".dll",
@@ -115,6 +121,7 @@ func IncrementVersion() {
 	conf.Other.Version = fmt.Sprintf("v%s", strings.Join(version, "."))
 }
 
+// GenFilename 生成文件名
 func GenFilename(ext string) string {
 	filename := []string{conf.FileName.Name}
 	if conf.FileName.IsPlat || *ac.IsAll {
@@ -131,6 +138,7 @@ func GenFilename(ext string) string {
 	return fmt.Sprintf("%s%s", _filename, ext)
 }
 
+// flagUsage 自定义帮助文档
 func flagUsage() {
 	flag.Usage = func() {
 		_, _ = fmt.Fprintf(os.Stdout, "%s🧱 程序使用帮助文档 🛠️%s：\n", colorBold+colorGreen, colorReset)
@@ -143,9 +151,10 @@ func flagUsage() {
 	}
 }
 
+// SaveConfig 保存配置文件
 func SaveConfig() {
 	// true 配置文件改变
-	if !conf.Other.Change {
+	if !conf.Other.Change && CheckDirExist(buildCfg) {
 		return
 	}
 	f := ini.Empty()
@@ -183,7 +192,7 @@ func ExecSourceBuild() {
 		conf.Env.GOOS = plat
 		_ = os.Setenv("GOOS", plat)
 		// 平台后缀
-		fileExt := platformExt(plat)
+		fileExt := PlatformExt(plat)
 		fmt.Printf("开始编译 %s 平台\n", plat)
 		fmt.Printf("Go版本: %s\n", conf.Other.GoVersion)
 
@@ -233,4 +242,14 @@ func GenConfigFileName() {
 	path := os.Args[0]
 	ext := filepath.Ext(path)
 	buildCfg = filepath.Base(path[:len(path)-len(ext)])
+}
+
+// FirstUpper 首字母大写
+func FirstUpper(s string) string {
+	if len(s) == 0 {
+		return ""
+	}
+	runes := []rune(s)
+	runes[0] = unicode.ToUpper(runes[0])
+	return string(runes)
 }

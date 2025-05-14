@@ -75,6 +75,7 @@ func init() {
 
 	ac = &ArgsCommand{
 		IsGen:   flag.Bool("gen", false, "执行go generate命令(建议:internal/gen)"),
+		Router:  flag.Bool("router", false, "生成Gin路由文件"),
 		Help:    flag.Bool("help", false, "帮助"),
 		Init:    flag.Bool("init", false, "初始化Go环境"),
 		IsGUI:   flag.Bool("gui", conf.Build.IsGUI, "是否是GUI编译"),

@@ -1,0 +1,25 @@
+; go install github.com/clovme/build@latest
+
+[env]
+GOOS   = windows
+GOARCH = amd64
+
+[build]
+gen     = false
+gui     = false
+all     = false
+upx     = true
+mode    = false
+plat    = windows
+arch    = amd64
+version = 0,0,1
+
+[filename]
+name = build
+plat = false
+arch = false
+ver  = false
+
+[other]
+comment    = false
+go_version = go1.23.4

@@ -1,12 +1,9 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"os"
-	"path/filepath"
 	"reflect"
-	"runtime"
 	"strings"
 )
 
@@ -66,8 +63,12 @@ type ArgsCommandContext struct {
 }
 
 // ArgsCommand 命令行参数
+//
+//	type: 类型，Value: 函数+值类型，Field: 值类型，Func: 函数类型，EValue: 执行函数+值类型+退出程序
+//	func: 执行函数名称，field: 配置文件字段名称，comment: 注释内容
 type ArgsCommand struct {
 	IsGen   *bool   `type:"Value" func:"Build.IsGen" comment:"是否执行go generate命令"`
+	Router  *bool   `type:"Func" func:"GenGinRouter" comment:"生成Gin路由文件"`
 	Init    *bool   `type:"Func" func:"InitEnv" comment:"初始化Go环境"`
 	Help    *bool   `type:"Func" func:"Help" comment:"帮助"`
 	Check   *bool   `type:"Func" func:"Check" comment:"构建器快速诊断命令"`
@@ -86,71 +87,13 @@ type ArgsCommand struct {
 	IsAll   *bool   `type:"Value" func:"Build.IsAll" comment:"编译三大平台(linux、windows、darwin)"`
 }
 
-func (c *ArgsCommand) EInitEnv() {
-	// 获取用户配置目录
-	dir, err := os.UserConfigDir()
-	if err != nil {
-		fmt.Println("获取用户配置目录时出错:", err)
-		return
-	}
-
-	// 准备路径
-	pipPath := filepath.Join(dir, "pip")
-	goPath := filepath.Join(dir, "go")
-
-	// 创建目录
-	_ = os.MkdirAll(goPath, 0755)
-	_ = os.MkdirAll(pipPath, 0755)
-
-	// 写入文件
-	_ = os.WriteFile(filepath.Join(goPath, "env"), env, 0644)
-	_ = os.WriteFile(filepath.Join(pipPath, "pip.ini"), pip, 0644)
-}
-
-func (c *ArgsCommand) EHelp() {
-	flag.Usage()
-}
-
-func (c *ArgsCommand) ECheck() {
-	Command("go", "list", "-f", "'{{.GoFiles}}'", ".")
-}
-
-func (c *ArgsCommand) EList() {
-	Command("go", "tool", "dist", "list")
-}
-
-func (c *ArgsCommand) EDefault() {
-	conf.Env.GOOS = runtime.GOOS
-	conf.Env.GOARCH = runtime.GOARCH
-	SaveConfig()
-}
-
-func (c *ArgsCommand) EBuildIsAll(isDefault bool) {
-	if isDefault {
-		if len(conf.Build.Arch) == 0 || len(conf.Build.Plat) == 0 {
-			conf.Build.Arch = []string{"amd64", "arm64"}
-			conf.Build.Plat = []string{"windows", "linux", "darwin"}
-		}
-	} else {
-		conf.Build.Arch = []string{conf.Env.GOARCH}
-		conf.Build.Plat = []string{conf.Env.GOOS}
-	}
-}
-
-func (c *ArgsCommand) EBuildIsGen(isDefault bool) {
-	if isDefault {
-		Command("go", "generate", "./...")
-	}
-}
-
-// TValue 处理值类型函数
 func (c *ArgsCommand) TValue(ctx ArgsCommandContext) {
 	// 数据断言成功
 	if !ctx.ValueOk {
 		return
 	}
 	funcName := strings.Replace(ctx.Field.Tag.Get("func"), ".", "", -1)
-	method, _ := ctx.CmdType.MethodByName(fmt.Sprintf("E%s", funcName))
+	method, _ := ctx.CmdType.MethodByName(fmt.Sprintf("V%s", funcName))
 	method.Func.Call([]reflect.Value{
 		reflect.ValueOf(ac),
 		reflect.ValueOf(*ctx.Value),
