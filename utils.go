@@ -214,12 +214,20 @@ func ExecSourceBuild() {
 
 // CheckDirExist 判断文件夹是否存在
 func CheckDirExist(folderPath string) bool {
-	if _, err := os.Stat(folderPath); os.IsNotExist(err) {
-		// 文件夹不存在
+	info, err := os.Stat(folderPath)
+	if os.IsNotExist(err) {
 		return false
 	}
-	// 文件夹存在
-	return true
+	return info.IsDir()
+}
+
+// CheckFileExist 判断文件是否存在
+func CheckFileExist(filePath string) bool {
+	info, err := os.Stat(filePath)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir()
 }
 
 // UnEmbedTempFile 解压临时文件

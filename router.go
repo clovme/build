@@ -35,18 +35,18 @@ type TemplateRoute struct {
 	Handler string
 }
 
-type GroupedRoutes struct {
+type GroupedRouters struct {
 	GroupName string
-	Routes    []TemplateRoute
+	Routers   []TemplateRoute
 }
 
 type TemplateData struct {
 	Imports []string
 	Groups  []string
-	Grouped []GroupedRoutes
+	Grouped []GroupedRouters
 }
 
-const routeTemplate = `package main
+const routeTemplate = `package routers
 
 import (
 {{- range .Imports }}
@@ -55,15 +55,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type Routes struct {
+type routeGroup struct {
 {{- range .Groups }}
 	{{ . }} *gin.RouterGroup
 {{- end }}
 }
 
-func (r *Routes) Register() {
+func (r *routeGroup) register() {
 {{- range $gIndex, $group := .Grouped }}
-{{- range $group.Routes }}
+{{- range $group.Routers }}
 	r.{{ .Group }}.{{ .Method }}("{{ .Path }}", {{ .Handler }})
 {{- end }}
 {{- if lt $gIndex (sub1 (len $.Grouped)) }}
@@ -72,7 +72,20 @@ func (r *Routes) Register() {
 }
 `
 
-func writeRoutes(routes map[string][]Route) error {
+const initialize = `package routers
+
+import "github.com/gin-gonic/gin"
+
+func Initialization(engine *gin.Engine) {
+	routers := routeGroup{
+		// 这里添加路由组和中间件
+	}
+
+	routers.register()
+}
+`
+
+func writeRouters(routers map[string][]Route) error {
 	funcMap := template.FuncMap{
 		"len":  func(v interface{}) int { return reflect.ValueOf(v).Len() },
 		"sub1": func(i int) int { return i - 1 },
@@ -88,7 +101,7 @@ func writeRoutes(routes map[string][]Route) error {
 	var groups []string
 	groupMap := make(map[string][]TemplateRoute)
 
-	for groupName, routeList := range routes {
+	for groupName, routeList := range routers {
 		groups = append(groups, groupName)
 		for _, route := range routeList {
 			importSet[route.PackagePath] = struct{}{}
@@ -108,11 +121,11 @@ func writeRoutes(routes map[string][]Route) error {
 	}
 	sort.Strings(imports)
 
-	var grouped []GroupedRoutes
+	var grouped []GroupedRouters
 	for _, g := range groups {
-		grouped = append(grouped, GroupedRoutes{
+		grouped = append(grouped, GroupedRouters{
 			GroupName: g,
-			Routes:    groupMap[g],
+			Routers:   groupMap[g],
 		})
 	}
 
@@ -122,7 +135,8 @@ func writeRoutes(routes map[string][]Route) error {
 		Grouped: grouped,
 	}
 
-	outputPath := "routers/router.go"
+	routerPath := "routers/router.go"
+	initializePath := "routers/initialize.go"
 	// 判断 routers 文件夹是否存在，不存在则创建
 	if !CheckDirExist("routers") {
 		if err = os.Mkdir("routers", os.ModePerm); err != nil {
@@ -130,8 +144,13 @@ func writeRoutes(routes map[string][]Route) error {
 		}
 	}
 
+	// 判断文件 routers/initialize.go 是否存在，不存在则创建
+	if !CheckFileExist(initializePath) {
+		os.WriteFile(initializePath, []byte(initialize), os.ModePerm)
+	}
+
 	// 输出
-	f, err := os.Create(outputPath)
+	f, err := os.Create(routerPath)
 	if err != nil {
 		return fmt.Errorf("创建文件失败: %w", err)
 	}
@@ -141,6 +160,6 @@ func writeRoutes(routes map[string][]Route) error {
 		return fmt.Errorf("执行模板失败: %w", err)
 	}
 
-	fmt.Println("✅ 路由文件生成成功:", outputPath)
+	fmt.Println("✅ 路由文件生成成功:", routerPath)
 	return nil
 }

@@ -101,7 +101,7 @@ func (c *ArgsCommand) EGenGinRouter() {
 						}
 						// 匹配 @Group
 						if groupMatches := groupRegex.FindStringSubmatch(comment.Text); groupMatches != nil {
-							group = FirstUpper(groupMatches[1])
+							group = strings.ToLower(groupMatches[1])
 						}
 					}
 					fmt.Printf("发现路由: %s %s %s -> %s.%s\n", group, route.HTTPMethod, route.Path, pkgName, fn.Name.Name)
@@ -117,7 +117,7 @@ func (c *ArgsCommand) EGenGinRouter() {
 	}
 
 	// 写入路由文件
-	if writeRoutes(routes) != nil {
+	if writeRouters(routes) != nil {
 		fmt.Println("❌ 出错啦：", err)
 	}
 }
