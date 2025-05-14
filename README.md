@@ -35,6 +35,7 @@ build -help
     -name     可执行文件名称 (当前值: "clovm")
     -note     配置文件中是否写入注释 (当前值: "false")
     -plat     文件名中是否添加平台名称 (当前值: "false")
+    -router   生成Gin路由文件 (当前值: "false")
     -upx      是否开启UPX压缩 (当前值: "false")
     -ver      文件名中是否添加版本号 (当前值: "false")
 
