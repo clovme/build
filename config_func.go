@@ -63,12 +63,19 @@ func (c *ArgsCommand) EGenGinRouter() {
 	fset := token.NewFileSet()
 
 	// 判断./controllers是否存在
-	if _, err := os.Stat("./controllers"); os.IsNotExist(err) {
-		fmt.Println("❌ 错误：controllers 目录不存在，或者这不是Gin项目")
-		return
+	if !IsDirExist("controllers") {
+		if err := os.Mkdir("controllers", os.ModePerm); err != nil {
+			fmt.Println("❌ 出错啦：controllers 目录创建失败！")
+			return
+		}
+		if err := os.WriteFile("controllers/example.go", []byte(controller), os.ModePerm); err != nil {
+			fmt.Println("❌ 出错啦：example.go 文件创建失败！")
+			return
+		}
 	}
+
 	// 递归遍历 controllers 目录下所有 go 文件
-	err := filepath.WalkDir("./controllers", func(path string, d os.DirEntry, err error) error {
+	err := filepath.WalkDir("controllers", func(path string, d os.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}

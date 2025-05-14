@@ -11,7 +11,6 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
-	"unicode"
 )
 
 // ANSI 彩色代码
@@ -154,7 +153,7 @@ func flagUsage() {
 // SaveConfig 保存配置文件
 func SaveConfig() {
 	// true 配置文件改变
-	if !conf.Other.Change && CheckDirExist(buildCfg) {
+	if !conf.Other.Change && IsDirExist(buildCfg) {
 		return
 	}
 	f := ini.Empty()
@@ -212,8 +211,8 @@ func ExecSourceBuild() {
 	conf.Env.GOOS = oldPlatform
 }
 
-// CheckDirExist 判断文件夹是否存在
-func CheckDirExist(folderPath string) bool {
+// IsDirExist 判断文件夹是否存在
+func IsDirExist(folderPath string) bool {
 	info, err := os.Stat(folderPath)
 	if os.IsNotExist(err) {
 		return false
@@ -221,8 +220,8 @@ func CheckDirExist(folderPath string) bool {
 	return info.IsDir()
 }
 
-// CheckFileExist 判断文件是否存在
-func CheckFileExist(filePath string) bool {
+// IsFileExist 判断文件是否存在
+func IsFileExist(filePath string) bool {
 	info, err := os.Stat(filePath)
 	if os.IsNotExist(err) {
 		return false
@@ -233,7 +232,7 @@ func CheckFileExist(filePath string) bool {
 // UnEmbedTempFile 解压临时文件
 func UnEmbedTempFile() {
 	conf.Other.Temp = filepath.Join(os.TempDir(), "~gobuild-tmp")
-	if !CheckDirExist(conf.Other.Temp) {
+	if !IsDirExist(conf.Other.Temp) {
 		_ = os.MkdirAll(conf.Other.Temp, os.ModePerm)
 	}
 	conf.Other.UPX = filepath.Join(conf.Other.Temp, "upx.exe")
@@ -250,14 +249,4 @@ func GenConfigFileName() {
 	path := os.Args[0]
 	ext := filepath.Ext(path)
 	buildCfg = filepath.Base(path[:len(path)-len(ext)])
-}
-
-// FirstUpper 首字母大写
-func FirstUpper(s string) string {
-	if len(s) == 0 {
-		return ""
-	}
-	runes := []rune(s)
-	runes[0] = unicode.ToUpper(runes[0])
-	return string(runes)
 }

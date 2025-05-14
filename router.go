@@ -85,6 +85,46 @@ func Initialization(engine *gin.Engine) {
 }
 `
 
+const controller = `// @Router	/users [get] (重要参数，路由配置)
+// @Group	public (重要参数，路由分组和权限控制)
+
+package controllers
+
+import "github.com/gin-gonic/gin"
+
+// GetUsers			godoc
+// @Summary			获取用户信息
+// @Description 	根据ID获取用户详细信息
+// @Tags        	用户模块
+// @Accept       	json
+// @Produce      	json
+// @Success      	200  {object}  UserResponse
+// @Router			/users [get]
+// @Group 			public
+func GetUsers(c *gin.Context) {
+	c.JSON(200, gin.H{
+		"message": "GET Users",
+	})
+}
+
+
+// PutUsers			godoc
+// @Summary			获取用户信息
+// @Description 	根据ID获取用户详细信息
+// @Tags        	用户模块
+// @Accept       	json
+// @Produce      	json
+// @Param        	id   path      int  true  "用户ID"
+// @Success      	200  {object}  UserResponse
+// @Router			/users/{id} [put]
+// @Group 			admin
+func PutUsers(c *gin.Context) {
+	c.JSON(200, gin.H{
+		"message": "PUT Users",
+	})
+}
+`
+
 func writeRouters(routers map[string][]Route) error {
 	funcMap := template.FuncMap{
 		"len":  func(v interface{}) int { return reflect.ValueOf(v).Len() },
@@ -138,14 +178,14 @@ func writeRouters(routers map[string][]Route) error {
 	routerPath := "routers/router.go"
 	initializePath := "routers/initialize.go"
 	// 判断 routers 文件夹是否存在，不存在则创建
-	if !CheckDirExist("routers") {
+	if !IsDirExist("routers") {
 		if err = os.Mkdir("routers", os.ModePerm); err != nil {
 			return fmt.Errorf("创建 routers 文件夹失败: %w", err)
 		}
 	}
 
 	// 判断文件 routers/initialize.go 是否存在，不存在则创建
-	if !CheckFileExist(initializePath) {
+	if !IsDirExist(initializePath) {
 		os.WriteFile(initializePath, []byte(initialize), os.ModePerm)
 	}
 

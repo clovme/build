@@ -100,7 +100,7 @@ func init() {
 
 func main() {
 	defer func() {
-		if CheckDirExist(conf.Other.Temp) {
+		if IsDirExist(conf.Other.Temp) {
 			_ = os.RemoveAll(conf.Other.Temp)
 		}
 	}()
