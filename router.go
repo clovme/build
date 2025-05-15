@@ -76,40 +76,39 @@ func (r *routeGroup) register() {
 {{- end }}
 }`
 
-const initialize = `package routers
+const gitignore = `# If you prefer the allow list template instead of the deny list, see community template:
+# https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
+#
+# Binaries for programs and plugins
+.idea
+*.exe
+*.exe~
+*.dll
+*.so
+*.upx
+*.dylib
 
-import (
-	"{{ .ProjectName }}/middleware"
-	"github.com/gin-gonic/gin"
-	"net/http"
-)
+logs
+tmp
+demo
+test
 
-// registerNoRoute 注册404处理
-func registerNoRoute(engine *gin.Engine) {
-	engine.NoRoute(func(c *gin.Context) {
-		c.JSON(http.StatusNotFound, gin.H{
-			"message": "请输入正确的请求地址!",
-		})
-	})
-}
+# Test binary, built with 'go test -c'
+*.test
 
-func Initialization(engine *gin.Engine) {
-	engine.Use(
-		middleware.CorsMiddleware([]string{"127.0.0.1:8080", "localhost:8080"}),
-		middleware.RecoveryMiddleware(),
-	)
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
 
-	routers := routeGroup{
-		public: engine.Group("/api"),
-		admin:  engine.Group("/api"),
-		noAuth: engine.Group("/api", middleware.NoAuth()),
-	}
+# Dependency directories (remove the comment below to include it)
+vendor
 
-	routers.register()
+# Go workspace file
+go.work
+go.work.sum
 
-	// 注册404处理
-	registerNoRoute(engine)
-}`
+*.db
+data
+*.sqlite`
 
 func writeRouters(routers map[string][]Route) error {
 	funcMap := template.FuncMap{
@@ -162,29 +161,11 @@ func writeRouters(routers map[string][]Route) error {
 	}
 
 	routerPath := "routers/router.go"
-	initializePath := "routers/initialize.go"
 	// 判断 routers 文件夹是否存在，不存在则创建
 	if !IsDirExist("routers") {
 		if err = os.Mkdir("routers", os.ModePerm); err != nil {
 			return fmt.Errorf("创建 routers 文件夹失败: %w", err)
 		}
-	}
-
-	// 判断文件 routers/initialize.go 是否存在，不存在则创建
-	if !IsFileExist(initializePath) {
-		// 创建一个新的模板，解析并执行模板
-		t, _ := template.New("initialize").Parse(initialize)
-
-		// 输出解析结果，可以写入文件
-		file, _ := os.Create(initializePath)
-		defer file.Close()
-
-		// 要填充的数据
-		_data := GinTemplateData{
-			ProjectName: conf.FileName.Name,
-		}
-		// 执行模板，填充数据，并写入文件
-		_ = t.Execute(file, _data)
 	}
 
 	// 输出

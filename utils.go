@@ -249,7 +249,7 @@ func IsFileExist(filePath string) bool {
 
 // UnEmbedTempFile 解压临时文件
 func UnEmbedTempFile() {
-	conf.Other.Temp = filepath.Join(os.TempDir(), "~gobuild-tmp")
+	conf.Other.Temp = filepath.Join(os.TempDir(), "~go-build-tmp")
 	if !IsDirExist(conf.Other.Temp) {
 		_ = os.MkdirAll(conf.Other.Temp, os.ModePerm)
 	}
@@ -267,4 +267,17 @@ func GenConfigFileName() {
 	path := os.Args[0]
 	ext := filepath.Ext(path)
 	buildCfg = filepath.Base(path[:len(path)-len(ext)])
+}
+
+// SetGoEnv 设置GO环境变量
+func SetGoEnv() {
+	GOBIN := filepath.Join(os.Getenv("GOPATH"), "bin")
+	if temp := CmdValue("go", "env", "get", "GOBIN"); temp != "" {
+		GOBIN = temp
+	}
+
+	PATH := os.Getenv("PATH")
+	if !strings.Contains(PATH, GOBIN) {
+		_ = os.Setenv("PATH", fmt.Sprintf("%s;%s", GOBIN, PATH))
+	}
 }

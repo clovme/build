@@ -144,36 +144,56 @@ func (c *ArgsCommand) EGin() {
 		ProjectName: conf.FileName.Name,
 	}
 
+	isFirst := true
 	_ = fs.WalkDir(ePublic, "public/gin", func(path string, d fs.DirEntry, err error) error {
 		tempPath := strings.Replace(path, "public/gin/", "", 1)
+
 		// 判断是否是文件夹
 		if d.IsDir() {
-			if !IsDirExist(tempPath) {
-				_ = os.MkdirAll(tempPath, os.ModePerm)
+			if tempPath != "public/gin" {
+				if !IsDirExist(tempPath) {
+					_ = os.MkdirAll(tempPath, os.ModePerm)
+				}
 			}
 		} else {
-			goFile := strings.Replace(tempPath, ".tpl", ".go", 1)
-			if !IsFileExist(goFile) {
+			newFile := strings.Replace(tempPath, ".tpl", ".go", 1)
+			if !IsFileExist(newFile) {
 				// 读取模板文件
 				tmpl, _ := ePublic.ReadFile(path)
+				if strings.HasPrefix(newFile, "public") {
+					// 复制文件
+					_ = os.WriteFile(newFile, tmpl, os.ModePerm)
+					return nil
+				}
 				// 创建一个新的模板，解析并执行模板
 				t, _ := template.New("constant").Parse(string(tmpl))
 
 				// 输出解析结果，可以写入文件
-				file, _ := os.Create(goFile)
+				file, _ := os.Create(newFile)
 				defer file.Close()
 
 				// 执行模板，填充数据，并写入文件
 				_ = t.Execute(file, data)
 
-				fmt.Printf("✅ 创建文件：%s\n", goFile)
+				fmt.Printf("✅ 创建文件：%s\n", newFile)
+			} else {
+				isFirst = false
+				fmt.Printf("❌ 文件已存在：%s\n", newFile)
 			}
 		}
 		return nil
 	})
-
+	if !isFirst {
+		fmt.Printf("✅ 项目已存在，可以执行:\n　 %s -router\n　 %s -air\n", buildCfg, buildCfg)
+		return
+	}
+	if !IsFileExist(".gitignore") {
+		_ = os.WriteFile(".gitignore", []byte(gitignore), os.ModePerm)
+	}
 	c.EGenGinRouter()
 
 	Command("go", "mod", "init", conf.FileName.Name)
 	Command("go", "mod", "tidy")
+
+	c.EAir()
 }

@@ -108,17 +108,18 @@ func (c *ArgsCommand) TValue(ctx ArgsCommandContext) {
 
 // TFunc 执行函数类型函数，执行完函数就结束程序
 func (c *ArgsCommand) TFunc(ctx ArgsCommandContext) {
-	// 数据断言成功
-	if !ctx.ValueOk {
+	// 数据断言成功, 数据为true
+	if !ctx.ValueOk || !*ctx.Value {
 		return
 	}
-	// 数据为true
-	if !*ctx.Value {
-		return
-	}
+	defer func() {
+		if IsDirExist(conf.Other.Temp) {
+			_ = os.RemoveAll(conf.Other.Temp)
+		}
+		os.Exit(0)
+	}()
 	method, _ := ctx.CmdType.MethodByName(fmt.Sprintf("E%s", ctx.Field.Tag.Get("func")))
 	method.Func.Call([]reflect.Value{reflect.ValueOf(ac)})
-	os.Exit(0)
 }
 
 // TField 处理字段类型函数，从命令行赋值给配置文件

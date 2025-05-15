@@ -40,6 +40,8 @@ func init() {
 	UnEmbedTempFile()
 	// 生成配置文件名
 	GenConfigFileName()
+	// 设置GO环境变量
+	SetGoEnv()
 
 	file, err := ini.Load(buildCfg)
 	if err == nil {
@@ -102,6 +104,8 @@ func init() {
 
 func main() {
 	defer func() {
+		// 保存配置文件
+		SaveConfig()
 		if IsDirExist(conf.Other.Temp) {
 			_ = os.RemoveAll(conf.Other.Temp)
 		}
@@ -133,7 +137,7 @@ func main() {
 	ext := filepath.Ext(conf.FileName.Name)
 	conf.FileName.Name = conf.FileName.Name[:len(conf.FileName.Name)-len(ext)]
 
-	// 设置环境变量
+	// 设置编译环境变量
 	envt := reflect.TypeOf(&conf.Env).Elem()
 	envv := reflect.ValueOf(&conf.Env).Elem()
 	for i := 0; i < envt.NumField(); i++ {
@@ -144,7 +148,5 @@ func main() {
 		}
 	}
 	// 执行编译命令
-	ExecSourceBuild()
-	// 保存配置文件
-	SaveConfig()
+	//ExecSourceBuild()
 }

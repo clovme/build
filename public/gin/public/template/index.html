@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ .ProjectName }} - 模板</title>
+    <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<h1>{{ .ProjectName }} - 模板</h1>
+
+<table border="1">
+    <tr>
+        <td>ID</td>
+        <td>昵称</td>
+        <td>用户名</td>
+        <td>密码</td>
+        <td>Token</td>
+        <td>Token过期时间</td>
+        <td>创建时间</td>
+        <td>更新时间</td>
+    </tr>
+    {{ range .Users }}
+    <tr>
+        <td>{{ .ID }}</td>
+        <td>{{ .Nickname }}</td>
+        <td>{{ .Username }}</td>
+        <td>{{ .Password }}</td>
+        <td>{{ .Token }}</td>
+        <td>{{ .ExpiresAt }}</td>
+        <td>{{ .CreatedAt }}</td>
+        <td>{{ .UpdatedAt }}</td>
+    </tr>
+    {{end}}
+</table>
+</body>
+</html>

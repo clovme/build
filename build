@@ -8,14 +8,14 @@ GOARCH = amd64
 gen     = false
 gui     = false
 all     = false
-upx     = true
+upx     = false
 mode    = false
 plat    = windows
 arch    = amd64
 version = 0,2,5
 
 [filename]
-name = build
+name = D:/Application/tools/buildx
 plat = false
 arch = false
 ver  = false
