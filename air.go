@@ -4,22 +4,18 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"runtime"
 	"text/template"
 )
-
-// AirTemplateData 定义模板需要的结构体
-type AirTemplateData struct {
-	Name string
-}
 
 const airTemplate = `root = "."
 tmp_dir = "tmp"
 
 [build]
-  cmd = "go build -o tmp/{{ .Name }}.exe ."
-  bin = "tmp/{{ .Name }}.exe"
-  include_ext = ["go"]
-  exclude_dir = [".idea", "tmp", "vendor"]
+  cmd = "go build -o tmp/{{ .ProjectName }} ."
+  bin = "tmp/{{ .ProjectName }}"
+  include_ext = ["go", "html", "js", "css"]
+  exclude_dir = [".idea", "temp", "tmp", "vendor"]
   delay = 1000
 
 [log]
@@ -27,9 +23,11 @@ tmp_dir = "tmp"
 
 func CreateAirToml() {
 	if !IsFileExist(".air.toml") {
+		fileExt := PlatformExt(runtime.GOOS)
+		filename := GenFilename(fileExt)
 		// 创建模板数据
-		data := AirTemplateData{
-			Name: conf.FileName.Name, // 你可以在这里修改 Name 的值
+		data := GinTemplateData{
+			ProjectName: filename, // 你可以在这里修改 Name 的值
 		}
 
 		// 解析模板

@@ -8,16 +8,16 @@
 <body>
 <h1>{{ .ProjectName }} - 模板</h1>
 
-<table border="1">
+<table>
     <tr>
-        <td>ID</td>
-        <td>昵称</td>
-        <td>用户名</td>
-        <td>密码</td>
-        <td>Token</td>
-        <td>Token过期时间</td>
-        <td>创建时间</td>
-        <td>更新时间</td>
+        <th>ID</th>
+        <th>昵称</th>
+        <th>用户名</th>
+        <th>密码</th>
+        <th>Token</th>
+        <th>Token过期时间</th>
+        <th>创建时间</th>
+        <th>更新时间</th>
     </tr>
     {{ range .Users }}
     <tr>

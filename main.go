@@ -148,5 +148,5 @@ func main() {
 		}
 	}
 	// 执行编译命令
-	//ExecSourceBuild()
+	ExecSourceBuild()
 }

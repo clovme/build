@@ -8,11 +8,11 @@ GOARCH = amd64
 gen     = false
 gui     = false
 all     = false
-upx     = false
+upx     = true
 mode    = false
 plat    = windows
 arch    = amd64
-version = 0,2,5
+version = 0,2,6
 
 [filename]
 name = D:/Application/tools/buildx
