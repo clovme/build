@@ -1,0 +1,53 @@
+package cmd
+
+import (
+	"buildx/cmd/tpl"
+	"buildx/global"
+	"buildx/global/config"
+	"buildx/libs"
+	"bytes"
+	"fmt"
+	"github.com/spf13/cobra"
+	"text/template"
+)
+
+var cfg = config.GetConfig()
+
+func genRootLongTemp() string {
+	tmpl, _ := template.New("rootLong").Parse(`🛠️ Go 编译工具 & Gin 框架项目助手，集成了一套高效实用的命令行工具
+
+⚙️ 快速上手：
+$ {{ .Name }} build				# 执行 Go 编译
+$ {{ .Name }} gin new project	# 创建 Gin 框架项目
+$ {{ .Name }} gin route			# 提取并生成 Gin 路由文件
+$ {{ .Name }} gin ddd			# 创建 DDD 模块目录结构`)
+	var buf bytes.Buffer
+	_ = tmpl.Execute(&buf, map[string]string{"Name": global.ExeFileName})
+	return buf.String()
+}
+
+var rootCmd = &cobra.Command{
+	Use:  global.ExeFileName,
+	Long: genRootLongTemp(),
+	CompletionOptions: cobra.CompletionOptions{
+		DisableDefaultCmd: true,
+	},
+}
+
+func Execute() {
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Println(err)
+	}
+}
+
+func init() {
+	rootCmd.AddCommand(airCmd)
+	rootCmd.AddCommand(buildCmd)
+	rootCmd.AddCommand(tpl.GinCmd)
+
+	rootCmd.PersistentFlags().BoolP("help", "h", false, "查看命令帮助")
+
+	rootCmd.PreRun = func(cmd *cobra.Command, args []string) {
+		cfg.Other.IsComment = libs.GetBool(cmd, "comment")
+	}
+}
