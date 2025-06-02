@@ -9,12 +9,12 @@ type {{ .StructName }}Repository struct {
 	DB *gorm.DB
 }
 
-func (r *{{ .StructName }}Repository) FindAll() ([]{{ .DomainName }}.{{ .EntityName }}, error) {
-	var {{ .DomainName }}s []{{ .DomainName }}.{{ .EntityName }}
-	err := r.DB.Find(&{{ .DomainName }}s).Error
-	return {{ .DomainName }}s, err
+func (r *{{ .StructName }}Repository) FindAll() ([]{{ .DomainPath }}.{{ .DomainName }}, error) {
+	var {{ .DomainPath }}s []{{ .DomainPath }}.{{ .DomainName }}
+	err := r.DB.Find(&{{ .DomainPath }}s).Error
+	return {{ .DomainPath }}s, err
 }
 
-func (r *{{ .StructName }}Repository) Save(u *{{ .DomainName }}.{{ .EntityName }}) error {
+func (r *{{ .StructName }}Repository) Save(u *{{ .DomainPath }}.{{ .DomainName }}) error {
 	return r.DB.Create(u).Error
 }

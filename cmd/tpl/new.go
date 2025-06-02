@@ -31,6 +31,7 @@ logs
 tmp
 demo
 test
+build
 
 # Test binary, built with 'go test -c'
 *.test
@@ -44,6 +45,7 @@ vendor
 # Go workspace file
 go.work
 go.work.sum
+.air.toml
 
 *.db
 data
@@ -66,11 +68,11 @@ var newCmd = &cobra.Command{
 			return
 		}
 		if strings.Contains(args[0], "/") || strings.Contains(args[0], "\\") {
-			fmt.Printf("❌ 项目名称不能包含 / 或 \\ 字符，请重试...\n")
+			fmt.Printf("项目名称不能包含 / 或 \\ 字符，请重试...\n")
 			return
 		}
 		if libs.IsDirExist(args[0]) {
-			fmt.Printf("❌ 项目 %s 已存在，请重试...\n", args[0])
+			fmt.Printf("项目 %s 已存在，请重试...\n", args[0])
 			return
 		}
 
@@ -97,9 +99,9 @@ var newCmd = &cobra.Command{
 					// 执行模板，填充数据，并写入文件
 					_ = t.Execute(file, map[string]string{"ProjectName": args[0]})
 
-					fmt.Printf("✅ 创建文件：%s\n", newFile)
+					fmt.Printf("创建文件：%s\n", newFile)
 				} else {
-					fmt.Printf("❌ 文件已存在：%s\n", newFile)
+					fmt.Printf("文件已存在：%s\n", newFile)
 				}
 			}
 			return nil
@@ -113,7 +115,7 @@ var newCmd = &cobra.Command{
 		_ = os.WriteFile(filepath.Join(args[0], "go.mod"), []byte(mod), os.ModePerm)
 
 		libs.CommandDir(args[0], "go", "mod", "tidy")
-		fmt.Printf("✅ %s 项目创建完毕...\n\n", args[0])
+		fmt.Printf("%s 项目创建完毕...\n\n", args[0])
 		fmt.Printf("cd %s\n", args[0])
 		fmt.Printf("%s air 启动项目\n", global.ExeFileName)
 	},

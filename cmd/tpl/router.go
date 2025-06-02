@@ -73,6 +73,7 @@ type routeGroup struct {
 func (r *routeGroup) register(db *gorm.DB) {
 	// 初始化仓库和服务
 	ctx := bootstrap.NewAppContext(db)
+
 {{- range $gIndex, $group := .Grouped }}
 {{- range $group.Routers }}
 	r.{{ .Group }}.{{ .Method }}("{{ .Path }}", {{ .Handler }})
@@ -121,7 +122,7 @@ func writeRouters(routers map[string][]Route) error {
 	data := TemplateData{
 		Groups:      groups,
 		Grouped:     grouped,
-		ProjectName: strings.TrimSpace(getModuleName()),
+		ProjectName: strings.TrimSpace(libs.GetModuleName()),
 	}
 
 	routerPath := "internal/bootstrap/routers/router.go"
@@ -143,7 +144,7 @@ func writeRouters(routers map[string][]Route) error {
 		return fmt.Errorf("执行模板失败: %w", err)
 	}
 
-	fmt.Println("✅ 路由文件生成成功:", routerPath)
+	fmt.Println("路由文件生成成功:", routerPath)
 	return nil
 }
 
@@ -160,7 +161,7 @@ func regRouter() {
 		if !d.IsDir() && strings.HasSuffix(d.Name(), ".go") {
 			// 获取包名（根据目录路径）
 			dir := filepath.Dir(path)
-			pkgPath := fmt.Sprintf("%s/%s", getModuleName(), strings.Replace(dir, "\\", "/", -1))
+			pkgPath := fmt.Sprintf("%s/%s", libs.GetModuleName(), strings.Replace(dir, "\\", "/", -1))
 			pkgName, _ := parseFile(path, "Handler")
 
 			// 解析文件
@@ -198,7 +199,7 @@ func regRouter() {
 
 	// 写入路由文件
 	if err := writeRouters(routes); err != nil {
-		fmt.Println("❌ 出错啦：", err)
+		fmt.Println("出错啦：", err)
 	}
 }
 

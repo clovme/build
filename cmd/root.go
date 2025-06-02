@@ -14,13 +14,7 @@ import (
 var cfg = config.GetConfig()
 
 func genRootLongTemp() string {
-	tmpl, _ := template.New("rootLong").Parse(`🛠️ Go 编译工具 & Gin 框架项目助手，集成了一套高效实用的命令行工具
-
-⚙️ 快速上手：
-$ {{ .Name }} build				# 执行 Go 编译
-$ {{ .Name }} gin new project	# 创建 Gin 框架项目
-$ {{ .Name }} gin route			# 提取并生成 Gin 路由文件
-$ {{ .Name }} gin ddd			# 创建 DDD 模块目录结构`)
+	tmpl, _ := template.New("rootLong").Parse(`🛠️ Go 编译工具 & Gin 框架项目助手，集成了一套高效实用的命令行工具`)
 	var buf bytes.Buffer
 	_ = tmpl.Execute(&buf, map[string]string{"Name": global.ExeFileName})
 	return buf.String()

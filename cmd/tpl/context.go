@@ -2,6 +2,7 @@ package tpl
 
 import (
 	"buildx/global"
+	"buildx/libs"
 	"fmt"
 	"github.com/spf13/cobra"
 	"go/ast"
@@ -103,7 +104,7 @@ func parseFile(goFile, suffix string) (structName string, err error) {
 
 func pkg(path string) (pkgPath, pkgName string) {
 	dir := filepath.Dir(path)
-	pkgPath = fmt.Sprintf("%s/%s", getModuleName(), strings.Replace(dir, "\\", "/", -1))
+	pkgPath = fmt.Sprintf("%s/%s", libs.GetModuleName(), strings.Replace(dir, "\\", "/", -1))
 	pkgName = filepath.Base(dir)
 	return
 }
@@ -215,13 +216,13 @@ func regContext() {
 
 var contextCmd = &cobra.Command{
 	Use:   "context",
-	Short: "自动注册 Modules",
+	Short: "自动注册 DDD(application/infrastructure/interfaces) 层",
 	Run: func(cmd *cobra.Command, args []string) {
 		regContext()
-		fmt.Println("✅ 注册 Modules 完成...")
+		fmt.Println("注册 DDD(application/infrastructure/interfaces) 层完成...")
 	},
 }
 
 func init() {
-	contextCmd.SetUsageTemplate(fmt.Sprintf("Usage:\n  %s gin context\t注册 Modules\n\nGlobal Flags:\n{{.Flags.FlagUsages}}", global.ExeFileName))
+	contextCmd.SetUsageTemplate(fmt.Sprintf("Usage:\n  %s gin context\t注册 DDD(application/infrastructure/interfaces) 层\n\nGlobal Flags:\n{{.Flags.FlagUsages}}", global.ExeFileName))
 }

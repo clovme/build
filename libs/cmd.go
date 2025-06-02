@@ -42,6 +42,7 @@ func CommandDir(dir, exe string, arg ...string) {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
+	
 	if err := cmd.Run(); err != nil {
 		panic("命令执行失败！")
 	}

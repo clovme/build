@@ -7,21 +7,14 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/spf13/cobra"
+	"go/ast"
+	"go/parser"
+	"go/token"
 	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
 )
-
-// 判断bool数组是否包含true/false
-func isBoolArrayContains(target bool, arr []bool) bool {
-	for _, item := range arr {
-		if item == target {
-			return true
-		}
-	}
-	return false
-}
 
 // 返回上一层目录，并把反斜杠替换为正斜杠
 func dir(path string) string {
@@ -75,7 +68,7 @@ func structName(name string, flag bool) string {
 	}
 	entityName, err := parseFile(entityPath, "")
 	if err != nil {
-		fmt.Printf("❌ domain 层已存在，但没有解析出结构体名称,%s\n", entityName)
+		fmt.Printf("domain 层已存在，但没有解析出结构体名称,%s\n", entityName)
 		os.Exit(-1)
 	}
 	return entityName
@@ -134,18 +127,38 @@ func goFilePath(path, toPath, name, flag string) string {
 	return fmt.Sprintf("%s%s/%s", toPath, doPath, fileName)
 }
 
-func getModuleName() string {
-	file, err := os.ReadFile("go.mod")
+func domainNameOrPath(domain string) (name string, err error) {
+	entityPath := fmt.Sprintf("internal/domain/%s/entity.go", domain)
+
+	// 解析文件
+	node, err := parser.ParseFile(token.NewFileSet(), entityPath, nil, parser.AllErrors)
 	if err != nil {
-		fmt.Println("❌ 获取模块名称失败:", err)
-		os.Exit(-1)
+		return
 	}
-	module := strings.Split(strings.Split(string(file), "\n")[0][7:], "/")
-	return module[len(module)-1]
+
+	ast.Inspect(node, func(n ast.Node) bool {
+		genDecl, ok := n.(*ast.GenDecl)
+		if !ok || genDecl.Tok != token.TYPE {
+			return true
+		}
+		for _, spec := range genDecl.Specs {
+			typeSpec, ok := spec.(*ast.TypeSpec)
+			if !ok {
+				continue
+			}
+
+			// 判断是否是 struct 类型
+			if _, ok := typeSpec.Type.(*ast.StructType); ok {
+				name = typeSpec.Name.Name
+			}
+		}
+		return true
+	})
+	return
 }
 
 // 创建 DDD 模块目录结构
-func createModule(flag string, paths []string, toPath, name string) bool {
+func createDDD(flag string, paths []string, toPath, domain, domainName, name string) bool {
 	name = strings.ToLower(strings.TrimPrefix(strings.Replace(strings.TrimSpace(name), "\\", "/", -1), "/"))
 
 	data := map[string]string{
@@ -154,9 +167,9 @@ func createModule(flag string, paths []string, toPath, name string) bool {
 		"EntityName":  structName(name, true),
 		"AppPath":     appPath(name),
 		"AppName":     appName(name),
-		"DomainPath":  domainPath(toPath, name),
-		"DomainName":  domainName(name),
-		"ProjectName": strings.TrimSpace(getModuleName()),
+		"DomainPath":  domain,
+		"DomainName":  domainName,
+		"ProjectName": strings.TrimSpace(libs.GetModuleName()),
 	}
 
 	isFlag := true
@@ -180,36 +193,39 @@ func createModule(flag string, paths []string, toPath, name string) bool {
 	return isFlag
 }
 
-var moduleCmd = &cobra.Command{
+var dddCmd = &cobra.Command{
 	Use:   "ddd",
-	Short: "创建 DDD Module",
-	Args:  cobra.MinimumNArgs(2),
+	Short: "创建 DDD(application/infrastructure/interfaces) 层",
+	Args:  cobra.ExactArgs(3),
 	Run: func(cmd *cobra.Command, args []string) {
+		domainName, err := domainNameOrPath(args[1])
+		if err != nil {
+			fmt.Println(fmt.Sprintf("internal/domain/%s/entity.go 可能不存在！请先创建domain层\n　　%s gin domain -h", args[1], global.ExeFileName))
+			return
+		}
 		var flag []bool
 		for _, path := range []string{"internal/application", "internal/domain", "internal/infrastructure", "internal/interfaces"} {
 			flag = append(flag, !libs.IsDirExist(path))
 		}
-		if isBoolArrayContains(true, flag) {
+		if libs.IsBoolArrayContains(true, flag) {
 			fmt.Println(genGinTemp())
 			return
 		}
 		datas := []bool{
-			createModule("", []string{"domain/entity.tpl", "domain/repository.tpl", "domain/service.tpl"}, "internal/domain", args[1]),
-			createModule("app_", []string{"application/[name]_service.tpl"}, "internal/application", args[1]),
-			createModule(fmt.Sprintf("%s_", args[0]), []string{"handler/[name]_handler.tpl"}, fmt.Sprintf("internal/interfaces/%s", args[0]), args[1]),
-			createModule("pre_", []string{"infrastructure/persistence/[name]_repository.tpl"}, "internal/infrastructure/persistence", args[1]),
+			createDDD("app_", []string{"application/[name]_service.tpl"}, "internal/application", args[1], domainName, args[2]),
+			createDDD(fmt.Sprintf("%s_", args[0]), []string{"handler/[name]_handler.tpl"}, fmt.Sprintf("internal/interfaces/%s", args[0]), args[1], domainName, args[2]),
+			createDDD("pre_", []string{"infrastructure/persistence/[name]_repository.tpl"}, "internal/infrastructure/persistence", args[1], domainName, args[2]),
 		}
-		if isBoolArrayContains(true, datas) {
+		if libs.IsBoolArrayContains(true, datas) {
 			regContext()
 			regRouter()
-			fmt.Printf("✅ [%s] %s 模块创建并注册完毕...\n", args[0], args[1])
+			fmt.Printf("[%s] %s 模块创建并注册完毕...\n", args[0], args[1])
 		} else {
-			fmt.Printf("❌ [%s] %s 模块创建已存在...\n", args[0], args[1])
-			fmt.Printf("❌ %s 模块创建已存在...\n", args[0])
+			fmt.Printf("[%s] %s 模块创建已存在...\n", args[0], args[1])
 		}
 	},
 }
 
 func init() {
-	moduleCmd.SetUsageTemplate(fmt.Sprintf("Usage:\n  %s gin ddd [web][api] [module]\t创建 DDD Module\n\nGlobal Flags:\n{{.Flags.FlagUsages}}", global.ExeFileName))
+	dddCmd.SetUsageTemplate(fmt.Sprintf("Usage:\n  %s gin ddd [web/api] [domain] [module]\t创建 DDD(application/infrastructure/interfaces) 层\n\nGlobal Flags:\n{{.Flags.FlagUsages}}", global.ExeFileName))
 }

@@ -18,18 +18,18 @@ type {{ .StructName }}Handler struct {
 // @Accept       	text/html
 // @Produce      	text/html
 // @Success      	200  text/html  text/html
-// @Router			/list/{{ .DomainName }}s [get]
-// @Group 			views
+// @Router			/list/{{ .DomainPath }}s [get]
+// @Group 			public
 func (h *{{ .StructName }}Handler) List{{ .StructName }}s(c *gin.Context) {
-	{{ .DomainName }}s, err := h.{{ .StructName }}Service.GetAll{{ .StructName }}s()
+	{{ .DomainPath }}s, err := h.{{ .StructName }}Service.GetAll{{ .StructName }}s()
 	if err != nil {
-		c.String(http.StatusInternalServerError, "Failed to get {{ .DomainName }}s")
+		c.String(http.StatusInternalServerError, "Failed to get {{ .DomainPath }}s")
 		return
 	}
 
-	c.HTML(http.StatusOK, "{{ .DomainName }}List.html", gin.H{
+	c.HTML(http.StatusOK, "{{ .DomainPath }}List.html", gin.H{
 		"Title": "{{ .StructName }}列表",
-		"{{ .DomainName }}s": {{ .DomainName }}s,
+		"{{ .DomainName }}s": {{ .DomainPath }}s,
 	})
 }
 
@@ -40,23 +40,23 @@ func (h *{{ .StructName }}Handler) List{{ .StructName }}s(c *gin.Context) {
 // @Accept       	text/html
 // @Produce      	text/html
 // @Success      	200  text/html  text/html
-// @Router			/disable_all/{{ .DomainName }} [get]
-// @Group 			views
+// @Router			/disable_all/{{ .DomainPath }} [get]
+// @Group 			public
 func (h *{{ .StructName }}Handler) DisableAll{{ .StructName }}s(c *gin.Context) {
-	{{ .DomainName }}s, err := h.{{ .StructName }}Service.GetAll{{ .StructName }}s()
+	{{ .DomainPath }}s, err := h.{{ .StructName }}Service.GetAll{{ .StructName }}s()
 	if err != nil {
-		c.String(http.StatusInternalServerError, "Failed to get {{ .DomainName }}s")
+		c.String(http.StatusInternalServerError, "Failed to get {{ .DomainPath }}s")
 		return
 	}
 
 	// 新建领域服务
-	svc := {{ .DomainName }}.NewService()
-	svc.Disable{{ .EntityName }}s({{ .DomainName }}s)
+	svc := {{ .DomainPath }}.NewService()
+	svc.Disable{{ .DomainName }}s({{ .DomainPath }}s)
 
 	// 保存到数据库
-	for i := range {{ .DomainName }}s {
-		_ = h.{{ .StructName }}Service.Repo.Save(&{{ .DomainName }}s[i])
+	for i := range {{ .DomainPath }}s {
+		_ = h.{{ .StructName }}Service.Repo.Save(&{{ .DomainPath }}s[i])
 	}
 
-	c.Redirect(http.StatusFound, "/list/{{ .DomainName }}s")
+	c.Redirect(http.StatusFound, "/list/{{ .DomainPath }}s")
 }

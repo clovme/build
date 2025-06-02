@@ -5,9 +5,9 @@ import (
 )
 
 type {{ .StructName }}Service struct {
-	Repo {{ .DomainName }}.Repository
+	Repo {{ .DomainPath }}.Repository
 }
 
-func (s *{{ .StructName }}Service) GetAll{{ .StructName }}s() ([]{{ .DomainName }}.{{ .EntityName }}, error) {
+func (s *{{ .StructName }}Service) GetAll{{ .StructName }}s() ([]{{ .DomainPath }}.{{ .DomainName }}, error) {
 	return s.Repo.FindAll()
 }
