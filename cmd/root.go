@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"buildx/cmd/tpl"
+	"buildx/cmd/gin"
 	"buildx/global"
 	"buildx/global/config"
 	"buildx/libs"
@@ -37,7 +37,7 @@ func Execute() {
 func init() {
 	rootCmd.AddCommand(airCmd)
 	rootCmd.AddCommand(buildCmd)
-	rootCmd.AddCommand(tpl.GinCmd)
+	rootCmd.AddCommand(gin.GinCmd)
 
 	rootCmd.PersistentFlags().BoolP("help", "h", false, "查看命令帮助")
 

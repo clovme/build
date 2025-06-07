@@ -42,7 +42,17 @@ func CommandDir(dir, exe string, arg ...string) {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
-	
+
+	if err := cmd.Run(); err != nil {
+		panic("命令执行失败！")
+	}
+}
+
+// CommandNoOutDir 执行控制台输出命令
+func CommandNoOutDir(dir, exe string, arg ...string) {
+	cmd := exec.Command(exe, arg...)
+	cmd.Dir = dir // 指定目录
+
 	if err := cmd.Run(); err != nil {
 		panic("命令执行失败！")
 	}

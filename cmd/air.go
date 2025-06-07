@@ -17,7 +17,7 @@ tmp_dir = "build"
   cmd = "go build -o build/{{ .Name }} ."
   bin = "build/{{ .Name }}"
   include_ext = ["go", "html", "js", "css"]
-  exclude_dir = [".idea", "temp", "tmp", "vendor", "build"]
+  exclude_dir = [".idea", "temp", "tmp", "vendor", "build", "logs", "data"]
   delay = 1000
 
 [log]
