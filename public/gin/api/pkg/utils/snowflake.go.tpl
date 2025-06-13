@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"{{ .ProjectName }}/pkg/log/app_log"
+	"{{ .ProjectName }}/pkg/logger/log"
 	"{{ .ProjectName }}/pkg/snowflake"
 )
 
@@ -12,7 +12,7 @@ func InitSnowflake(nodeID int64) {
 	var err error
 	node, err = snowflake.NewNode(nodeID)
 	if err != nil {
-		app_log.Panic().Err(err).Msg("雪花算法节点初始化失败")
+		log.Panic().Err(err).Msg("雪花算法节点初始化失败")
 	}
 }
 

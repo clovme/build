@@ -1,17 +1,19 @@
 package utils
 
+import "{{ .ProjectName }}/pkg/enums/em_status"
+
 // SetConfig 设置配置
-func SetConfig[T comparable](key *T, value, defaultValue T, enable bool) {
+func SetConfig[T comparable](key *T, value, defaultValue T, s em_status.Status) {
 	*key = value
-	if !enable {
+	if !s.Is(em_status.Enable) {
 		*key = defaultValue
 	}
 }
 
 // SetByteConfig 设置配置
-func SetByteConfig(key *[]byte, value, defaultValue []byte, enable bool) {
+func SetByteConfig(key *[]byte, value, defaultValue []byte, s em_status.Status) {
 	*key = value
-	if !enable {
+	if !s.Is(em_status.Enable) {
 		*key = defaultValue
 	}
 }

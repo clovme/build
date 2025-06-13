@@ -3,6 +3,9 @@ package config
 import (
 	"fmt"
 	"{{ .ProjectName }}/pkg/constants"
+	"{{ .ProjectName }}/pkg/constants/vt"
+	"{{ .ProjectName }}/pkg/let"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/ini.v1"
 	"strings"
@@ -33,14 +36,14 @@ func GetConfig() *Config {
 				Host:     "localhost",
 				Port:     6379,
 				Password: "",
+				DB:       0,
 			},
 			Web: Web{
 				Host: "localhost",
-				Port: 8080,
-				Mode: "debug",
+				Port: 9527,
 			},
 			Logger: Logger{
-				Level:      "debug",
+				Level:      zerolog.InfoLevel.String(),
 				MaxSize:    50,
 				Logs:       "logs",
 				FormatJSON: false,
@@ -49,19 +52,26 @@ func GetConfig() *Config {
 				MaxBackups: 5,
 			},
 			Other: Other{
-				DbType: "SQLite",
-				Data:   "data",
+				DbType:    vt.Redis,
+				CacheType: vt.Memory,
+				DataPath:  "data",
 			},
 		}
 
 		// ini 覆盖
-		if constants.ConfigPath == "" {
-			constants.ConfigPath = fmt.Sprintf("%s.ini", constants.ProjectName)
+		if let.ConfigPath == "" {
+			let.ConfigPath = fmt.Sprintf("%s.ini", constants.ProjectName)
 		}
-		file, err := ini.Load(constants.ConfigPath)
+		file, err := ini.Load(let.ConfigPath)
 		if err == nil {
 			_ = file.MapTo(cfg)
 		}
+		if cfg.Logger.Level == "no" {
+			cfg.Logger.Level = ""
+		}
+		cfg.Logger.Level = strings.ToLower(cfg.Logger.Level)
+		cfg.Other.DbType = vt.GetDbName(cfg.Other.DbType)
+		cfg.Other.CacheType = vt.GetCacheName(cfg.Other.CacheType)
 	})
 	return cfg
 }
@@ -81,7 +91,13 @@ func SaveConfig() {
 		file.DeleteSection(name)
 	}
 
-	if file.SaveTo(constants.ConfigPath) != nil {
+	if cfg.Other.CacheType == "Memory" {
+		for _, name := range []string{"Redis"} {
+			file.DeleteSection(name)
+		}
+	}
+
+	if file.SaveTo(let.ConfigPath) != nil {
 		log.Fatal().Err(err).Msg("配置文件保存失败")
 	}
 }

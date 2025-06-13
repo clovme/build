@@ -12,11 +12,11 @@ type LoginRepository struct {
 }
 
 func (r *LoginRepository) FindAll() ([]*do_user.User, error) {
-	user, err := r.Q.User.Find()
+	data, err := r.Q.User.Find()
     if err != nil {
         return nil, err
     }
-    return user, err
+    return data, err
 }
 
 func (r *LoginRepository) Save(u *do_user.User) error {

@@ -116,19 +116,26 @@ func NamePrefix(path, flag string) (prefix, name string) {
 // flag "", app, api/web等
 func GetFilePath(toPath, prefix, name, ddd, flag string) string {
 	ddd = filepath.Base(ddd)
-	if flag != "" {
-		ddd = strings.Replace(ddd, "[name]", name, -1)
-	}
 	ddd = strings.Replace(ddd, ".tpl", "", -1)
 
-	if !strings.Contains(prefix, "/") && flag != "" {
+	if flag != "do" {
+		ddd = strings.Replace(ddd, "[name]", CamelToSnake(name), -1)
+		if strings.Contains(prefix, "/") {
+			name = filepath.Base(prefix)
+			prefix, _ = NamePrefix(filepath.Dir(prefix), flag)
+			return fmt.Sprintf("%s/%s/%s", toPath, strings.ToLower(prefix), ddd)
+		}
+	}
+
+	if !strings.Contains(prefix, "/") {
 		return fmt.Sprintf("%s/%s", toPath, ddd)
 	}
 	return fmt.Sprintf("%s/%s/%s", toPath, strings.ToLower(prefix), ddd)
 }
 
-func GetPackageName(toPath, prefix string) string {
-	if strings.Contains(prefix, "/") {
+func GetPackageName(toPath, args, flag string) string {
+	if strings.Contains(args, "/") {
+		prefix, _ := NamePrefix(filepath.Dir(args), flag)
 		return filepath.Base(prefix)
 	}
 	return filepath.Base(toPath)
@@ -141,9 +148,7 @@ func CamelToSnake(s string) string {
 	for i := 0; i < len(runes); i++ {
 		if i > 0 {
 			// 当前是大写，前面是小写，或者当前是大写，前面是大写，后面是小写
-			if unicode.IsUpper(runes[i]) &&
-				((i+1 < len(runes) && unicode.IsLower(runes[i+1])) ||
-					unicode.IsLower(runes[i-1])) {
+			if unicode.IsUpper(runes[i]) && ((i+1 < len(runes) && unicode.IsLower(runes[i+1])) || unicode.IsLower(runes[i-1])) {
 				result = append(result, '_')
 			}
 		}

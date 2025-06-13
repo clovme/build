@@ -5,6 +5,8 @@ import (
 	"crypto/rand"
 	"{{ .ProjectName }}/pkg/constants"
 	"{{ .ProjectName }}/pkg/crypto"
+	"{{ .ProjectName }}/pkg/let"
+	"{{ .ProjectName }}/pkg/logger/http_log"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
@@ -38,8 +40,8 @@ func EncryptResponse() gin.HandlerFunc {
 		c.Next()
 
 		// 那些请求直接返原路返回
-		encrypt, exists := c.Get(constants.ContextIsEncryptedResponse)
-		if !exists || !encrypt.(bool) || !constants.IsEnableEncrypted {
+		encrypt, exists := c.Get(constants.ContextIsEncrypted)
+		if !exists || !encrypt.(bool) || !let.IsEnableEncrypted {
 			// 不加密，直接返回原始
 			origin.Write(buf.Bytes())
 			return
@@ -48,13 +50,17 @@ func EncryptResponse() gin.HandlerFunc {
 		// 生成16字节 AES 密钥
 		aesKey := make([]byte, 16)
 		if _, err := rand.Read(aesKey); err != nil {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "随机密钥生成失败"})
+			http_log.Error(c).Err(err).Msg("随机密钥生成失败")
+			// 生成密钥失败，返回错误信息
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "服务器异常"})
 			return
 		}
 
 		// AES 加密正文
 		encrypted, err := crypto.AesEncrypt(buf.Bytes(), aesKey)
 		if err != nil {
+			http_log.Error(c).Err(err).Msg("AES 加密失败")
+			// 加密失败，返回错误信息
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "服务器异常"})
 			return
 		}
@@ -62,6 +68,8 @@ func EncryptResponse() gin.HandlerFunc {
 		// RSA 加密 AES 密钥
 		encKey, err := crypto.RsaEncryptKey(aesKey, crypto.PublicKey)
 		if err != nil {
+			http_log.Error(c).Err(err).Msg("RSA 加密失败")
+			// 加密失败，返回错误信息
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "服务器异常"})
 			return
 		}
@@ -72,6 +80,8 @@ func EncryptResponse() gin.HandlerFunc {
 
 		signature, err := crypto.SignWithPrivateKey([]byte(signContent))
 		if err != nil {
+			http_log.Error(c).Err(err).Msg("签名失败")
+			// 加密失败，返回错误信息
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "签名失败"})
 			return
 		}

@@ -31,11 +31,11 @@ func newPermission(db *gorm.DB, opts ...gen.DOOption) permission {
 	_permission.Name = field.NewString(tableName, "name")
 	_permission.Code = field.NewString(tableName, "code")
 	_permission.PID = field.NewInt64(tableName, "p_id")
-	_permission.Type = field.NewString(tableName, "type")
+	_permission.Type = field.NewInt(tableName, "type")
 	_permission.Uri = field.NewString(tableName, "uri")
 	_permission.Method = field.NewString(tableName, "method")
 	_permission.Sort = field.NewInt(tableName, "sort")
-	_permission.Status = field.NewBool(tableName, "status")
+	_permission.Status = field.NewInt(tableName, "status")
 	_permission.Description = field.NewString(tableName, "description")
 	_permission.CreatedAt = field.NewTime(tableName, "created_at")
 	_permission.UpdatedAt = field.NewTime(tableName, "updated_at")
@@ -54,11 +54,11 @@ type permission struct {
 	Name        field.String
 	Code        field.String
 	PID         field.Int64
-	Type        field.String
+	Type        field.Int
 	Uri         field.String
 	Method      field.String
 	Sort        field.Int
-	Status      field.Bool
+	Status      field.Int
 	Description field.String
 	CreatedAt   field.Time
 	UpdatedAt   field.Time
@@ -83,11 +83,11 @@ func (p *permission) updateTableName(table string) *permission {
 	p.Name = field.NewString(table, "name")
 	p.Code = field.NewString(table, "code")
 	p.PID = field.NewInt64(table, "p_id")
-	p.Type = field.NewString(table, "type")
+	p.Type = field.NewInt(table, "type")
 	p.Uri = field.NewString(table, "uri")
 	p.Method = field.NewString(table, "method")
 	p.Sort = field.NewInt(table, "sort")
-	p.Status = field.NewBool(table, "status")
+	p.Status = field.NewInt(table, "status")
 	p.Description = field.NewString(table, "description")
 	p.CreatedAt = field.NewTime(table, "created_at")
 	p.UpdatedAt = field.NewTime(table, "updated_at")

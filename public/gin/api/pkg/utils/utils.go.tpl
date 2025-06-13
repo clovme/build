@@ -14,6 +14,15 @@ func IsDirExist(folderPath string) bool {
 	return info.IsDir()
 }
 
+// IsFileExist 判断文件是否存在
+func IsFileExist(filePath string) bool {
+	info, err := os.Stat(filePath)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir()
+}
+
 // Capitalize 首字符大写
 func Capitalize(s string) string {
 	if s == "" {

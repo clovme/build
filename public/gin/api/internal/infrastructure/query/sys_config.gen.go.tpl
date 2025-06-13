@@ -31,7 +31,8 @@ func newConfig(db *gorm.DB, opts ...gen.DOOption) config {
 	_config.Name = field.NewString(tableName, "name")
 	_config.Value = field.NewString(tableName, "value")
 	_config.Default = field.NewString(tableName, "default")
-	_config.Enable = field.NewBool(tableName, "enable")
+	_config.Show = field.NewInt(tableName, "show")
+	_config.Status = field.NewInt(tableName, "status")
 	_config.Description = field.NewString(tableName, "description")
 	_config.CreatedAt = field.NewTime(tableName, "created_at")
 	_config.UpdatedAt = field.NewTime(tableName, "updated_at")
@@ -49,7 +50,8 @@ type config struct {
 	Name        field.String
 	Value       field.String
 	Default     field.String
-	Enable      field.Bool
+	Show        field.Int
+	Status      field.Int
 	Description field.String
 	CreatedAt   field.Time
 	UpdatedAt   field.Time
@@ -73,7 +75,8 @@ func (c *config) updateTableName(table string) *config {
 	c.Name = field.NewString(table, "name")
 	c.Value = field.NewString(table, "value")
 	c.Default = field.NewString(table, "default")
-	c.Enable = field.NewBool(table, "enable")
+	c.Show = field.NewInt(table, "show")
+	c.Status = field.NewInt(table, "status")
 	c.Description = field.NewString(table, "description")
 	c.CreatedAt = field.NewTime(table, "created_at")
 	c.UpdatedAt = field.NewTime(table, "updated_at")
@@ -93,12 +96,13 @@ func (c *config) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (c *config) fillFieldMap() {
-	c.fieldMap = make(map[string]field.Expr, 8)
+	c.fieldMap = make(map[string]field.Expr, 9)
 	c.fieldMap["id"] = c.ID
 	c.fieldMap["name"] = c.Name
 	c.fieldMap["value"] = c.Value
 	c.fieldMap["default"] = c.Default
-	c.fieldMap["enable"] = c.Enable
+	c.fieldMap["show"] = c.Show
+	c.fieldMap["status"] = c.Status
 	c.fieldMap["description"] = c.Description
 	c.fieldMap["created_at"] = c.CreatedAt
 	c.fieldMap["updated_at"] = c.UpdatedAt

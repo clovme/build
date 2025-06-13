@@ -5,3 +5,11 @@ type Enums struct {
 	Name string
 	Desc string
 }
+
+type Enum interface {
+	Key() string
+	Name() string
+	Desc() string
+	Int() int
+	String() string
+}

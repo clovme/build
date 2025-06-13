@@ -4,11 +4,17 @@ import (
 	"embed"
 )
 
-//go:embed all:ui/templates
+//go:embed all:web/templates
 var TemplateFS embed.FS
 
-//go:embed all:ui/assets
+//go:embed all:initweb
+var InitiateFS embed.FS
+
+//go:embed all:web/assets
 var StaticFS embed.FS
+
+//go:embed all:web/images
+var ImagesFS embed.FS
 
 //go:embed favicon.ico
 var Favicon embed.FS

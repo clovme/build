@@ -8,24 +8,29 @@ import (
 	"{{ .ProjectName }}/internal/bootstrap/database/initdata"
 	"{{ .ProjectName }}/internal/domain/auth/do_permission"
 	"{{ .ProjectName }}/internal/domain/auth/do_role"
+	"{{ .ProjectName }}/internal/domain/auth/do_role_group"
 	"{{ .ProjectName }}/internal/domain/auth/do_role_permission"
 	"{{ .ProjectName }}/internal/domain/auth/do_user_role"
 	"{{ .ProjectName }}/internal/domain/do_config"
+	"{{ .ProjectName }}/internal/domain/do_cors"
 	"{{ .ProjectName }}/internal/domain/do_enums"
 	"{{ .ProjectName }}/internal/domain/do_token"
 	"{{ .ProjectName }}/internal/domain/do_user"
 	"{{ .ProjectName }}/internal/infrastructure/query"
+	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"reflect"
 )
 
-func AutoMigrate(db *gorm.DB, dbq *query.Query) error {
+func AutoMigrate(db *gorm.DB, dbq *query.Query, router gin.RoutesInfo) error {
 	err := db.AutoMigrate(
 		&do_permission.Permission{},
 		&do_role.Role{},
+		&do_role_group.RoleGroup{},
 		&do_role_permission.RolePermission{},
 		&do_user_role.UserRole{},
 		&do_config.Config{},
+		&do_cors.CorsWhitelist{},
 		&do_enums.Enums{},
 		&do_token.Token{},
 		&do_user.User{},
@@ -35,7 +40,7 @@ func AutoMigrate(db *gorm.DB, dbq *query.Query) error {
 		return err
 	}
 	
-	v := reflect.ValueOf(&initdata.InitData{Db: db, Q: query.Q})
+	v := reflect.ValueOf(&initdata.InitData{Router: router, Q: query.Q})
 	for i := 0; i < v.NumMethod(); i++ {
 		v.Method(i).Call(nil)
 	}

@@ -1,6 +1,7 @@
 package do_enums
 
 import (
+	"{{ .ProjectName }}/pkg/enums/em_status"
 	"{{ .ProjectName }}/pkg/utils"
 	"gorm.io/gorm"
 	"time"
@@ -22,16 +23,17 @@ import (
 */
 
 type Enums struct {
-	ID          int64     `gorm:"primaryKey;type:bigint" json:"id"`
-	Category    string    `gorm:"type:varchar(50);index;not null" json:"category"` // 枚举分类
-	Key         string    `gorm:"type:varchar(100);not null" json:"key"`           // 枚举键（唯一标识）
-	Name        string    `gorm:"type:varchar(100);not null" json:"name"`          // 枚举名称（显示用）
-	Value       int       `gorm:"type:int;not null" json:"value"`                  // 枚举值（数字）
-	Sort        int       `gorm:"default:0" json:"sort"`                           // 排序
-	Enable      bool      `gorm:"not null;default:true" json:"enable"`             // 是否启用
-	Description string    `gorm:"type:varchar(255)" json:"description,omitempty"`  // 描述
-	CreatedAt   time.Time `gorm:"autoCreateTime:nano" json:"createdAt"`
-	UpdatedAt   time.Time `gorm:"autoUpdateTime:nano" json:"updatedAt"`
+	ID          int64            `gorm:"primaryKey;type:bigint" json:"id"`
+	Category    string           `gorm:"type:varchar(50);index;not null" json:"category"` // 枚举分类
+	Key         string           `gorm:"type:varchar(100);not null" json:"key"`           // 枚举键（唯一标识）
+	Name        string           `gorm:"type:varchar(100);not null" json:"name"`          // 枚举名称（显示用）
+	Value       int              `gorm:"type:int;not null" json:"value"`                  // 枚举值（数字）
+	ValueT      int              `gorm:"default:0" json:"valueT"`                         // 值类型
+	Sort        int              `gorm:"default:0" json:"sort"`                           // 排序
+	Status      em_status.Status `gorm:"type:int;default:1" json:"status"`                // 状态：Enable启用，Disable禁用，其他扩展(如审核中，待发布等)
+	Description string           `gorm:"type:varchar(255)" json:"description,omitempty"`  // 描述
+	CreatedAt   time.Time        `gorm:"autoCreateTime:nano" json:"createdAt"`
+	UpdatedAt   time.Time        `gorm:"autoUpdateTime:nano" json:"updatedAt"`
 }
 
 func (enums *Enums) BeforeCreate(tx *gorm.DB) (err error) {

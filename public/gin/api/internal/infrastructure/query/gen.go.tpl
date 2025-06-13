@@ -18,6 +18,7 @@ import (
 var (
 	Q              = new(Query)
 	Config         *config
+	CorsWhitelist  *corsWhitelist
 	Enums          *enums
 	Permission     *permission
 	Role           *role
@@ -31,6 +32,7 @@ var (
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	*Q = *Use(db, opts...)
 	Config = &Q.Config
+	CorsWhitelist = &Q.CorsWhitelist
 	Enums = &Q.Enums
 	Permission = &Q.Permission
 	Role = &Q.Role
@@ -45,6 +47,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
 		db:             db,
 		Config:         newConfig(db, opts...),
+		CorsWhitelist:  newCorsWhitelist(db, opts...),
 		Enums:          newEnums(db, opts...),
 		Permission:     newPermission(db, opts...),
 		Role:           newRole(db, opts...),
@@ -60,6 +63,7 @@ type Query struct {
 	db *gorm.DB
 
 	Config         config
+	CorsWhitelist  corsWhitelist
 	Enums          enums
 	Permission     permission
 	Role           role
@@ -76,6 +80,7 @@ func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
 		db:             db,
 		Config:         q.Config.clone(db),
+		CorsWhitelist:  q.CorsWhitelist.clone(db),
 		Enums:          q.Enums.clone(db),
 		Permission:     q.Permission.clone(db),
 		Role:           q.Role.clone(db),
@@ -99,6 +104,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
 		db:             db,
 		Config:         q.Config.replaceDB(db),
+		CorsWhitelist:  q.CorsWhitelist.replaceDB(db),
 		Enums:          q.Enums.replaceDB(db),
 		Permission:     q.Permission.replaceDB(db),
 		Role:           q.Role.replaceDB(db),
@@ -112,6 +118,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 
 type queryCtx struct {
 	Config         *configDo
+	CorsWhitelist  *corsWhitelistDo
 	Enums          *enumsDo
 	Permission     *permissionDo
 	Role           *roleDo
@@ -125,6 +132,7 @@ type queryCtx struct {
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
 		Config:         q.Config.WithContext(ctx),
+		CorsWhitelist:  q.CorsWhitelist.WithContext(ctx),
 		Enums:          q.Enums.WithContext(ctx),
 		Permission:     q.Permission.WithContext(ctx),
 		Role:           q.Role.WithContext(ctx),

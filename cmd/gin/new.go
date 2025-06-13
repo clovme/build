@@ -14,42 +14,6 @@ import (
 	"text/template"
 )
 
-const gitignore = `# If you prefer the allow list template instead of the deny list, see community template:
-# https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
-#
-# Binaries for programs and plugins
-.idea
-*.exe
-*.exe~
-*.dll
-*.so
-*.upx
-*.dylib
-
-logs
-tmp
-demo
-test
-build
-
-# Test binary, built with 'go test -c'
-*.test
-
-# Output of the go coverage tool, specifically when used with LiteIDE
-*.out
-
-# Dependency directories (remove the comment below to include it)
-vendor
-
-# Go workspace file
-go.work
-go.work.sum
-.air.toml
-
-*.db
-data
-*.sqlite`
-
 func genNewGinTemp() {
 	tmpl, _ := template.New("newGinTemp").Parse(`⚙️ 帮助：
 $ {{ .Name }} gin new project	# 创建 Gin 框架项目`)
@@ -106,10 +70,6 @@ var newCmd = &cobra.Command{
 			return nil
 		})
 
-		gitignorePath := filepath.Join(args[0], "api", ".gitignore")
-		if !libs.IsFileExist(gitignorePath) {
-			_ = os.WriteFile(gitignorePath, []byte(gitignore), os.ModePerm)
-		}
 		libs.CommandDir(fmt.Sprintf("%s/api", args[0]), "go", "mod", "tidy")
 		fmt.Printf("%s 项目创建完毕...\n\n", args[0])
 		fmt.Printf("cd %s/api\n", args[0])

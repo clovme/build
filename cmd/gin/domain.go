@@ -21,7 +21,7 @@ type domainData struct {
 	TableName   string
 }
 
-func createDomain(prefix, name string) bool {
+func createDomain(prefix, name, structName string) bool {
 	toPath := "internal/domain"
 
 	domainNamePath := fmt.Sprintf("%s/%s", toPath, prefix)
@@ -30,18 +30,22 @@ func createDomain(prefix, name string) bool {
 		return false
 	}
 
-	fmt.Println(prefix)
 	data := domainData{
 		ProjectName: libs.GetModuleName(),
 		Package:     filepath.Base(prefix),
 		DomainPath:  prefix,
 		DomainName:  libs.SnakeToCamel(name),
-		TableName:   libs.CamelToSnake(name),
-		StructName:  libs.Capitalize(name),
+		TableName:   structName,
+		StructName:  libs.Capitalize(structName),
+	}
+
+	if structName != "" {
+		data.TableName = libs.CamelToSnake(structName)
+		data.StructName = libs.Capitalize(libs.SnakeToCamel(structName))
 	}
 
 	for _, path := range []string{"domain/entity.go.tpl", "domain/repository.go.tpl", "domain/service.go.tpl"} {
-		filePath := libs.GetFilePath(toPath, prefix, name, path, "")
+		filePath := libs.GetFilePath(toPath, prefix, name, path, "do")
 		bContent, _ := public.DDD.ReadFile(fmt.Sprintf("ddd/%s", path))
 		tmpl, _ := template.New("ddd").Parse(string(bContent))
 
@@ -58,7 +62,7 @@ func createDomain(prefix, name string) bool {
 var domainCmd = &cobra.Command{
 	Use:   "domain",
 	Short: "创建 domain(model) 层",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		if !libs.IsDirExist("internal/domain") {
 			fmt.Println(fmt.Sprintf("项目可能不是 %s gin new [project] 创建的，internal/domain不存在！\n", global.ExeFileName))
@@ -71,7 +75,14 @@ var domainCmd = &cobra.Command{
 			fmt.Println(fmt.Sprintf("模块 %s 已存在！", args[0]))
 			return
 		}
-		if createDomain(prefix, name) {
+
+		isFlag := false
+		if len(args) > 1 {
+			isFlag = createDomain(prefix, name, libs.CamelToSnake(args[1]))
+		} else {
+			isFlag = createDomain(prefix, name, libs.CamelToSnake(args[0]))
+		}
+		if isFlag {
 			regRouter()
 			regQuery()
 		}
@@ -79,5 +90,5 @@ var domainCmd = &cobra.Command{
 }
 
 func init() {
-	domainCmd.SetUsageTemplate(fmt.Sprintf("Usage:\n  %s gin domain [name]\t创建 domain(model) 层\n\nGlobal Flags:\n{{.Flags.FlagUsages}}", global.ExeFileName))
+	domainCmd.SetUsageTemplate(fmt.Sprintf("Usage:\n  %s gin domain [path/name] [StructName]\t创建 domain(model) 层，参数2不存在的时候，则使用参数1来做model名称\n\nGlobal Flags:\n{{.Flags.FlagUsages}}", global.ExeFileName))
 }

@@ -6,11 +6,10 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"os"
-	"strings"
 	"text/template"
 )
 
-const enumTpl = `package enum_{{ .Name }}
+const enumTpl = `package em_{{ .Name }}
 
 import (
 	"{{ .ProjectName }}/pkg/enums"
@@ -19,10 +18,10 @@ import (
 
 type {{ .EnumName }} int
 
-const Category = "{{ .Name }}"
+const Name = "{{ .Name }}"
 
 const (
-	Unknown {{ .EnumName }} = iota
+	Unknown {{ .EnumName }} = iota + 1
 )
 
 var (
@@ -41,26 +40,22 @@ func init() {
 
 // Key 获取enums.Key
 func (c {{ .EnumName }}) Key() string {
-	if meta, ok := initiate[c]; ok {
-		return meta.Key
-	}
-	return "Unknown"
+	return initiate[c].Key
 }
 
 // Name 获取枚举名称
 func (c {{ .EnumName }}) Name() string {
-	if meta, ok := initiate[c]; ok {
-		return meta.Name
-	}
-	return "Unknown"
+	return initiate[c].Name
 }
 
 // Desc 获取枚举描述
 func (c {{ .EnumName }}) Desc() string {
-	if meta, ok := initiate[c]; ok {
-		return meta.Desc
-	}
-	return "Unknown"
+	return initiate[c].Desc
+}
+
+// String 获取枚举名称
+func (c {{ .EnumName }}) String() string {
+	return initiate[c].Key
 }
 
 // Int 获取枚举值
@@ -68,8 +63,13 @@ func (c {{ .EnumName }}) Int() int {
 	return int(c)
 }
 
-// Get{{ .EnumName }} 获取{{ .EnumName }}
-func Get{{ .EnumName }}(key string) {{ .EnumName }} {
+// Is 比较枚举值
+func (c {{ .EnumName }}) Is(v {{ .EnumName }}) bool {
+	return v == c
+}
+
+// Code 获取{{ .EnumName }}
+func Code(key string) {{ .EnumName }} {
 	if enum, ok := enumToValue[key]; ok {
 		return enum
 	}
@@ -95,7 +95,7 @@ type enums struct {
 }
 
 var enumCmd = &cobra.Command{
-	Use:   "enum",
+	Use:   "enums",
 	Short: "创建枚举模块",
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -108,7 +108,7 @@ var enumCmd = &cobra.Command{
 
 		_ = os.MkdirAll(path, os.ModePerm)
 		data := enums{
-			Name:        strings.ToLower(args[0]),
+			Name:        libs.CamelToSnake(args[0]),
 			EnumName:    libs.Capitalize(args[0]),
 			ProjectName: libs.GetModuleName(),
 		}

@@ -3,7 +3,7 @@ package api
 import (
 	"encoding/base64"
 	"{{ .ProjectName }}/internal/application"
-	"{{ .ProjectName }}/pkg/enums/enum_code"
+	"{{ .ProjectName }}/pkg/enums/em_http"
 	"{{ .ProjectName }}/pkg/resp"
 	"{{ .ProjectName }}/public"
 	"github.com/gin-gonic/gin"
@@ -32,5 +32,12 @@ func (h *PublicHandler) HttpCode(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	resp.JsonSafe(c, enum_code.Success.Desc(), enums)
+	resp.JsonSafe(c, em_http.Success.Desc(), enums)
+}
+
+// Ping 自定义Http状态码
+// @Router			/public/ping [get]
+// @Group 			public
+func (h *PublicHandler) Ping(c *gin.Context) {
+	resp.JsonUnSafe(c, em_http.Success.Desc(), nil)
 }

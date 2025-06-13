@@ -32,8 +32,9 @@ func newEnums(db *gorm.DB, opts ...gen.DOOption) enums {
 	_enums.Key = field.NewString(tableName, "key")
 	_enums.Name = field.NewString(tableName, "name")
 	_enums.Value = field.NewInt(tableName, "value")
+	_enums.ValueT = field.NewInt(tableName, "value_t")
 	_enums.Sort = field.NewInt(tableName, "sort")
-	_enums.Enable = field.NewBool(tableName, "enable")
+	_enums.Status = field.NewInt(tableName, "status")
 	_enums.Description = field.NewString(tableName, "description")
 	_enums.CreatedAt = field.NewTime(tableName, "created_at")
 	_enums.UpdatedAt = field.NewTime(tableName, "updated_at")
@@ -52,8 +53,9 @@ type enums struct {
 	Key         field.String
 	Name        field.String
 	Value       field.Int
+	ValueT      field.Int
 	Sort        field.Int
-	Enable      field.Bool
+	Status      field.Int
 	Description field.String
 	CreatedAt   field.Time
 	UpdatedAt   field.Time
@@ -78,8 +80,9 @@ func (e *enums) updateTableName(table string) *enums {
 	e.Key = field.NewString(table, "key")
 	e.Name = field.NewString(table, "name")
 	e.Value = field.NewInt(table, "value")
+	e.ValueT = field.NewInt(table, "value_t")
 	e.Sort = field.NewInt(table, "sort")
-	e.Enable = field.NewBool(table, "enable")
+	e.Status = field.NewInt(table, "status")
 	e.Description = field.NewString(table, "description")
 	e.CreatedAt = field.NewTime(table, "created_at")
 	e.UpdatedAt = field.NewTime(table, "updated_at")
@@ -99,14 +102,15 @@ func (e *enums) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (e *enums) fillFieldMap() {
-	e.fieldMap = make(map[string]field.Expr, 10)
+	e.fieldMap = make(map[string]field.Expr, 11)
 	e.fieldMap["id"] = e.ID
 	e.fieldMap["category"] = e.Category
 	e.fieldMap["key"] = e.Key
 	e.fieldMap["name"] = e.Name
 	e.fieldMap["value"] = e.Value
+	e.fieldMap["value_t"] = e.ValueT
 	e.fieldMap["sort"] = e.Sort
-	e.fieldMap["enable"] = e.Enable
+	e.fieldMap["status"] = e.Status
 	e.fieldMap["description"] = e.Description
 	e.fieldMap["created_at"] = e.CreatedAt
 	e.fieldMap["updated_at"] = e.UpdatedAt

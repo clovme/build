@@ -2,7 +2,7 @@ package api
 
 import (
 	"{{ .ProjectName }}/internal/application"
-	"{{ .ProjectName }}/pkg/enums/enum_code"
+	"{{ .ProjectName }}/pkg/enums/em_http"
 	"{{ .ProjectName }}/pkg/resp"
 	"github.com/gin-gonic/gin"
 )
@@ -17,9 +17,9 @@ type ConfigHandler struct {
 func (h *ConfigHandler) Config(c *gin.Context) {
 	config, err := h.ConfigService.GetConfig()
 	if err != nil {
-		resp.JsonSafeCode(c, enum_code.ErrInternal, "Failed to get config", nil)
+		resp.JsonSafeCode(c, em_http.ErrInternal, "Failed to get config", nil)
 		return
 	}
 
-	resp.JsonSafe(c, enum_code.Success.Desc(), config)
+	resp.JsonSafe(c, em_http.Success.Desc(), config)
 }

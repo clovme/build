@@ -73,7 +73,7 @@ var structType = make(map[string]*StructType)
 
 func parseFile(goFile, suffix string) (structName string, err error) {
 	// 解析文件
-	node, err := parser.ParseFile(token.NewFileSet(), goFile, nil, parser.ParseComments)
+	node, err := parser.ParseFile(token.NewFileSet(), goFile, nil, parser.AllErrors)
 	if err != nil {
 		return "", err
 	}
@@ -121,7 +121,7 @@ func persistence() {
 		pkgPath, pkgName := pkg(path)
 		imports[pkgPath] = ""
 
-		name := strings.SplitN(filepath.Base(path), "_", 2)[0]
+		name := libs.SnakeToCamel(strings.Replace(filepath.Base(path), "_repository.go", "", -1))
 		repositoryName, err := parseFile(path, "Repository")
 		if err != nil {
 			return err
@@ -146,7 +146,7 @@ func application() {
 		pkgPath, pkgName := pkg(path)
 		imports[pkgPath] = ""
 
-		name := strings.SplitN(filepath.Base(path), "_", 2)[0]
+		name := libs.SnakeToCamel(strings.Replace(filepath.Base(path), "_service.go", "", -1))
 		serviceName, err := parseFile(path, "Service")
 		if err != nil {
 			return err
@@ -166,9 +166,10 @@ func interfaces() {
 		}
 
 		pkgPath, pkgName := pkg(path)
+
 		imports[pkgPath] = ""
 
-		name := strings.SplitN(filepath.Base(path), "_", 2)[0]
+		name := libs.SnakeToCamel(strings.Replace(filepath.Base(path), "_handler.go", "", -1))
 		handlerName, err := parseFile(path, "Handler")
 		if err != nil {
 			return err

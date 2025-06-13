@@ -33,6 +33,8 @@ func newRole(db *gorm.DB, opts ...gen.DOOption) role {
 	_role.Code = field.NewString(tableName, "code")
 	_role.CreatedBy = field.NewInt64(tableName, "created_by")
 	_role.Description = field.NewString(tableName, "description")
+	_role.Status = field.NewInt(tableName, "status")
+	_role.RoleGroupID = field.NewInt64(tableName, "role_group_id")
 	_role.CreatedAt = field.NewTime(tableName, "created_at")
 	_role.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_role.DeletedAt = field.NewTime(tableName, "deleted_at")
@@ -52,6 +54,8 @@ type role struct {
 	Code        field.String
 	CreatedBy   field.Int64
 	Description field.String
+	Status      field.Int
+	RoleGroupID field.Int64
 	CreatedAt   field.Time
 	UpdatedAt   field.Time
 	DeletedAt   field.Time
@@ -77,6 +81,8 @@ func (r *role) updateTableName(table string) *role {
 	r.Code = field.NewString(table, "code")
 	r.CreatedBy = field.NewInt64(table, "created_by")
 	r.Description = field.NewString(table, "description")
+	r.Status = field.NewInt(table, "status")
+	r.RoleGroupID = field.NewInt64(table, "role_group_id")
 	r.CreatedAt = field.NewTime(table, "created_at")
 	r.UpdatedAt = field.NewTime(table, "updated_at")
 	r.DeletedAt = field.NewTime(table, "deleted_at")
@@ -96,13 +102,15 @@ func (r *role) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (r *role) fillFieldMap() {
-	r.fieldMap = make(map[string]field.Expr, 9)
+	r.fieldMap = make(map[string]field.Expr, 11)
 	r.fieldMap["id"] = r.ID
 	r.fieldMap["name"] = r.Name
 	r.fieldMap["type"] = r.Type
 	r.fieldMap["code"] = r.Code
 	r.fieldMap["created_by"] = r.CreatedBy
 	r.fieldMap["description"] = r.Description
+	r.fieldMap["status"] = r.Status
+	r.fieldMap["role_group_id"] = r.RoleGroupID
 	r.fieldMap["created_at"] = r.CreatedAt
 	r.fieldMap["updated_at"] = r.UpdatedAt
 	r.fieldMap["deleted_at"] = r.DeletedAt

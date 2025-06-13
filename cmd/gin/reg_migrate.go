@@ -22,11 +22,12 @@ import (
 	"{{ .ProjectName }}/internal/domain/{{ .PackagePath }}"
 {{- end }}
 	"{{ .ProjectName }}/internal/infrastructure/query"
+	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"reflect"
 )
 
-func AutoMigrate(db *gorm.DB, dbq *query.Query) error {
+func AutoMigrate(db *gorm.DB, dbq *query.Query, router gin.RoutesInfo) error {
 	err := db.AutoMigrate(
 {{- range .PAS }}
 		&{{ .PackageName }}.{{ .StructName }}{},
@@ -37,7 +38,7 @@ func AutoMigrate(db *gorm.DB, dbq *query.Query) error {
 		return err
 	}
 	
-	v := reflect.ValueOf(&initdata.InitData{Db: db, Q: query.Q})
+	v := reflect.ValueOf(&initdata.InitData{Router: router, Q: query.Q})
 	for i := 0; i < v.NumMethod(); i++ {
 		v.Method(i).Call(nil)
 	}

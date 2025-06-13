@@ -8,6 +8,7 @@ import (
 	"{{ .ProjectName }}/internal/application"
 	"{{ .ProjectName }}/internal/infrastructure/persistence"
 	"{{ .ProjectName }}/internal/interfaces/api"
+	"{{ .ProjectName }}/internal/interfaces/web"
 	"{{ .ProjectName }}/internal/infrastructure/query"
 	"gorm.io/gorm"
 )
@@ -16,6 +17,8 @@ type appContext struct {
 	ConfigHandler *api.ConfigHandler
 	LoginHandler *api.LoginHandler
 	PublicHandler *api.PublicHandler
+	ViewIndexHandler *web.ViewIndexHandler
+	ViewLoginHandler *web.ViewLoginHandler
 }
 
 func NewAppContext(db *gorm.DB) *appContext {
@@ -31,9 +34,19 @@ func NewAppContext(db *gorm.DB) *appContext {
 	publicService := &application.PublicService{Repo: publicRepo}
 	publicHandler := &api.PublicHandler{PublicService: publicService}
 
+	viewIndexRepo := &persistence.ViewIndexRepository{DB: db, Q: query.Q}
+	viewIndexService := &application.ViewIndexService{Repo: viewIndexRepo}
+	viewIndexHandler := &web.ViewIndexHandler{ViewIndexService: viewIndexService}
+
+	viewLoginRepo := &persistence.ViewLoginRepository{DB: db, Q: query.Q}
+	viewLoginService := &application.ViewLoginService{Repo: viewLoginRepo}
+	viewLoginHandler := &web.ViewLoginHandler{ViewLoginService: viewLoginService}
+
 	return &appContext{
 		ConfigHandler: configHandler,
 		LoginHandler: loginHandler,
 		PublicHandler: publicHandler,
+		ViewIndexHandler: viewIndexHandler,
+		ViewLoginHandler: viewLoginHandler,
 	}
 }

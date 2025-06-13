@@ -17,7 +17,7 @@ const app = "app"
 type dddData struct {
 	Package          string
 	StructName       string
-	EntityName       string
+	Router           string
 	DomainPath       string
 	DomainName       string
 	DomainStructName string
@@ -27,9 +27,9 @@ type dddData struct {
 }
 
 func getAppPath(args string) (string, string) {
-	appPrefix, _ := libs.NamePrefix(args, app)
-	if strings.Contains(appPrefix, "/") {
-		return fmt.Sprintf("/%s", appPrefix), filepath.Base(appPrefix)
+	if strings.Contains(args, "/") {
+		appPrefix, _ := libs.NamePrefix(filepath.Dir(args), app)
+		return fmt.Sprintf("/%s", appPrefix), appPrefix
 	}
 	return "", "application"
 }
@@ -41,9 +41,9 @@ func createDDD(flag string, path string, toPath, domainPath, domainStructName, a
 	appPath, appName := getAppPath(args)
 
 	data := dddData{
-		Package:          libs.GetPackageName(toPath, prefix),
+		Package:          libs.GetPackageName(toPath, args, flag),
 		StructName:       libs.Capitalize(name),
-		EntityName:       "",
+		Router:           strings.ReplaceAll(libs.CamelToSnake(name), "_", "/"),
 		DomainPath:       domainPath,
 		DomainName:       filepath.Base(domainPath),
 		DomainStructName: domainStructName,

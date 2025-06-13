@@ -1,6 +1,8 @@
 package do_config
 
 import (
+	"{{ .ProjectName }}/pkg/enums/em_bool"
+	"{{ .ProjectName }}/pkg/enums/em_status"
 	"{{ .ProjectName }}/pkg/utils"
 	"gorm.io/gorm"
 	"time"
@@ -20,19 +22,19 @@ import (
 */
 
 type Config struct {
-	ID          int64     `gorm:"primaryKey;type:bigint" json:"id"`
-	Name        string    `gorm:"not null;unique" json:"name"`
-	Value       string    `gorm:"not null" json:"value"`
-	Default     string    `gorm:"not null" json:"default"`
-	Enable      bool      `gorm:"not null;default:true" json:"enable"`
-	Description string    `gorm:"type:varchar(255)" json:"description,omitempty"`
-	CreatedAt   time.Time `gorm:"autoCreateTime:nano" json:"createdAt"`
-	UpdatedAt   time.Time `gorm:"autoUpdateTime:nano" json:"updatedAt"`
+	ID          int64            `gorm:"primaryKey;type:bigint" json:"id"`
+	Name        string           `gorm:"type:varchar(50);not null;unique" json:"name"`
+	Value       string           `gorm:"not null" json:"value"`
+	Default     string           `gorm:"not null" json:"default"`
+	Show        em_bool.Bool     `gorm:"not null" json:"-"`
+	Status      em_status.Status `gorm:"type:int;default:1" json:"status"` // 状态：Enable启用，Disable禁用，其他扩展(如审核中，待发布等)
+	Description string           `gorm:"type:varchar(255)" json:"description,omitempty"`
+	CreatedAt   time.Time        `gorm:"autoCreateTime:nano" json:"createdAt"`
+	UpdatedAt   time.Time        `gorm:"autoUpdateTime:nano" json:"updatedAt"`
 }
 
 func (config *Config) BeforeCreate(tx *gorm.DB) (err error) {
 	config.ID = utils.GenerateID()
-	config.Enable = true
 	return
 }
 
