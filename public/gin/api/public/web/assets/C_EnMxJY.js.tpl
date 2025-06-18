@@ -1,1 +1,0 @@
-import{e,f as t,c as a,o as s}from"./D5WYelTe.js";const p=e({__name:"search",setup(o){return t({description:"搜索",titleTemplate:"%s - 搜索"}),(c,n)=>(s(),a("div",null,"/search.vue"))}});export{p as default};

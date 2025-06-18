@@ -3,7 +3,7 @@
 #
 # Binaries for programs and plugins
 .idea
-*.exe
+/*.exe
 *.exe~
 *.dll
 *.so

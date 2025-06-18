@@ -14,7 +14,7 @@ import (
 var cfg = config.GetConfig()
 
 func genRootLongTemp() string {
-	tmpl, _ := template.New("rootLong").Parse(`🛠️ Go 编译工具 & Gin 框架项目助手，集成了一套高效实用的命令行工具`)
+	tmpl, _ := template.New("rootLong").Parse(`Go 编译工具 & Gin 框架项目助手，集成了一套高效实用的命令行工具`)
 	var buf bytes.Buffer
 	_ = tmpl.Execute(&buf, map[string]string{"Name": global.ExeFileName})
 	return buf.String()
@@ -36,6 +36,7 @@ func Execute() {
 
 func init() {
 	rootCmd.AddCommand(airCmd)
+	rootCmd.AddCommand(gulpCmd)
 	rootCmd.AddCommand(buildCmd)
 	rootCmd.AddCommand(gin.GinCmd)
 

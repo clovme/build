@@ -11,6 +11,9 @@ var GinTpl embed.FS
 //go:embed all:ddd
 var DDD embed.FS
 
+//go:embed all:gulp
+var Gulp embed.FS
+
 //go:embed env
 var Env []byte
 

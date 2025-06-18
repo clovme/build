@@ -1,1 +1,0 @@
-import{e,c as o,o as n}from"./D5WYelTe.js";import{_ as t}from"./DlAUqK2U.js";const c={class:"admin-box"},s=e({__name:"index",setup(a){return(_,r)=>(n(),o("div",c,"admin/index.vue"))}}),m=t(s,[["__scopeId","data-v-6c3773c4"]]);export{m as default};

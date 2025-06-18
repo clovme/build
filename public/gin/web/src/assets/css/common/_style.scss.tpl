@@ -1,0 +1,48 @@
+* {
+  margin: 0;
+  padding: 0;
+  background-color: var(--transparent);
+}
+
+html, body, .app-container {
+  height: 100%;
+}
+
+body {
+  flex-direction: column;
+  height: auto;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-attachment: fixed;
+  background-size: cover;
+  background-color: #eff0f4;
+  font-family: 'Roboto', sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    /* 可叠一层深色滤镜或渐变 */
+    background-blend-mode: multiply;
+  }
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+
+  main.main-container {
+    flex: 1;
+  }
+
+  header.header-container {
+    display: flex;
+    align-items: center;
+    background-color: red;
+    height: 40px;
+
+    .header-left {
+      flex: 1;
+      background-color: green;
+    }
+  }
+}

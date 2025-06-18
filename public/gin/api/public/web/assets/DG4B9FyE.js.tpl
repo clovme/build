@@ -1,1 +1,0 @@
-import{e,f as t,c as n,o}from"./D5WYelTe.js";const i=e({__name:"index",setup(a){return t({description:"个人中心",titleTemplate:"%s - 个人中心[首页]"}),(s,c)=>(o(),n("div",null,"index.vue"))}});export{i as default};

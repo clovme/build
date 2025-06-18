@@ -48,24 +48,21 @@ var newCmd = &cobra.Command{
 					_ = os.MkdirAll(filepath.Dir(tempPath), os.ModePerm)
 				}
 				newFile := strings.Replace(tempPath, ".tpl", "", 1)
-				if !libs.IsFileExist(newFile) {
-					// 读取模板文件
-					tmpl, _ := public.GinTpl.ReadFile(path)
 
-					// 创建一个新的模板，解析并执行模板
-					t, _ := template.New("constant").Parse(string(tmpl))
+				// 读取模板文件
+				tmpl, _ := public.GinTpl.ReadFile(path)
 
-					// 输出解析结果，可以写入文件
-					file, _ := os.Create(newFile)
-					defer file.Close()
+				// 创建一个新的模板，解析并执行模板
+				t, _ := template.New("constant").Delims("[//{", "}//]").Parse(string(tmpl))
 
-					// 执行模板，填充数据，并写入文件
-					_ = t.Execute(file, map[string]string{"ProjectName": args[0]})
+				// 输出解析结果，可以写入文件
+				file, _ := os.Create(newFile)
+				defer file.Close()
 
-					fmt.Printf("创建文件：%s\n", newFile)
-				} else {
-					fmt.Printf("文件已存在：%s\n", newFile)
-				}
+				// 执行模板，填充数据，并写入文件
+				_ = t.Execute(file, map[string]string{"ProjectName": args[0]})
+
+				fmt.Printf("创建文件：%s\n", newFile)
 			}
 			return nil
 		})

@@ -88,7 +88,7 @@ var dddCmd = &cobra.Command{
 		for _, path := range []string{"internal/application", "internal/domain", "internal/infrastructure", "internal/interfaces"} {
 			flag = append(flag, !libs.IsDirExist(path))
 		}
-		if libs.IsBoolArrayContains(true, flag) {
+		if libs.IsArrayContains[bool](true, flag) {
 			fmt.Println(genGinTemp())
 			return
 		}
@@ -98,7 +98,7 @@ var dddCmd = &cobra.Command{
 			createDDD("pre", "infrastructure/persistence/[name]_repository.go.tpl", "internal/infrastructure/persistence", domain, domainStructName, args[2]),
 			createDDD(fmt.Sprintf("%s", args[0]), "handler/[name]_handler.go.tpl", fmt.Sprintf("internal/interfaces/%s", args[0]), domain, domainStructName, args[2]),
 		}
-		if libs.IsBoolArrayContains(true, datas) {
+		if libs.IsArrayContains[bool](true, datas) {
 			fmt.Printf("[%s] %s 模块创建并注册完毕...\n", args[0], args[1])
 			regContext()
 			regRouter()

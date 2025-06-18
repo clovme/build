@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="">
+  <head>
+    <meta charset="utf-8" data-build-time="<%= VITE_APP_BUILD_TIME %>">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <link rel="icon" href="/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title></title>
+    <link rel="stylesheet" href="<%= VITE_APP_CDN_URL %>@wangeditor/editor@5.1.23/dist/css/style.css">
+
+    <!-- 该统计脚本用于官方文档部署，实际使用时请及时删除该代码段 -->
+    <script>
+      var _hmt=_hmt||[];(function(){var a="",b=location.hostname;-1<b.indexOf("vxetable.cn")?a="1eb3cea61a6e722c5e3dd0114830306c":-1<b.indexOf("vxeui.com")&&(a="d7f93b6aca1d7ac7711f6c21b897a62c");a&&(b=document.createElement("script"),b.src="https://hm.baidu.com/hm.js?"+a,a=document.getElementsByTagName("script")[0],a.parentNode.insertBefore(b,a))})();
+    </script>
+    <!-- 该统计脚本用于官方文档部署，实际使用时请及时删除该代码段 -->
+  </head>
+  <body>
+    <noscript>
+      <strong>We're sorry but vxe doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+    </noscript>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+
+    <!-- 该统计脚本用于官方文档部署，实际使用时请及时删除该代码段 -->
+    <script>
+      (function(){var b="",a=location.hostname;-1<a.indexOf("vxetable.cn")?b="214":-1<a.indexOf("vxeui.com")&&(b="344");b&&(a=document.createElement("div"),a.className="wwads-cn wwads-vertical",a.setAttribute("data-id",b),a.style="position: fixed;bottom: 0;right: 0;max-width:200px",document.body.appendChild(a),b=document.createElement("script"),b.src="https://cdn.wwads.cn/js/makemoney.js",a=document.getElementsByTagName("script")[0],a.parentNode.insertBefore(b,a))})();
+    </script>
+    <!-- 该统计脚本用于官方文档部署，实际使用时请及时删除该代码段 -->
+
+    <!-- CDN -->
+    <script type="text/javascript" src="<%= VITE_APP_CDN_URL %>exceljs@4.4.0/dist/exceljs.min.js"></script>
+    <script type="text/javascript" src="<%= VITE_APP_CDN_URL %>echarts@5.4.3/dist/echarts.min.js"></script>
+    <script type="text/javascript" src="<%= VITE_APP_CDN_URL %>@wangeditor/editor@5.1.23/dist/index.js"></script>
+  </body>
+</html>

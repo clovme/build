@@ -81,8 +81,8 @@ func Capitalize(s string) string {
 	return string(runes)
 }
 
-// IsBoolArrayContains 判断bool数组是否包含true/false
-func IsBoolArrayContains(target bool, arr []bool) bool {
+// IsArrayContains 判断数组是否包含某元素
+func IsArrayContains[T comparable](target T, arr []T) bool {
 	for _, item := range arr {
 		if item == target {
 			return true
